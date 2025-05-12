@@ -67,19 +67,30 @@ chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 print_info "创建快捷命令 '$ALIAS_CMD'..."
 ALIAS_LINE="alias $ALIAS_CMD=\"$PROJECT_DIR/start.sh\""
 
-# 配置环境变量
+# 配置环境变量（增强版）
 print_info "配置环境变量..."
-ENV_FILE="$HOME/.bashrc"
-if [ -f "$HOME/.bash_profile" ]; then
-    ENV_FILE="$HOME/.bash_profile"
-fi
+ENV_FILES=("$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zshrc")
+ENV_FILE=""
 
-# 添加 alias 到环境文件
-if ! grep -q "$ALIAS_LINE" "$ENV_FILE"; then
-    echo "$ALIAS_LINE" >> "$ENV_FILE"
-    print_info "已将 '$ALIAS_LINE' 添加到 $ENV_FILE"
-else
-    print_info "alias 已配置，跳过此步骤"
+# 查找当前用户使用的 shell 对应的配置文件
+for file in "${ENV_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        if ! grep -q "$ALIAS_LINE" "$file"; then
+            echo "$ALIAS_LINE" >> "$file"
+            print_info "已将 '$ALIAS_LINE' 添加到 $file"
+        else
+            print_info "alias 已在 $file 中配置，跳过此步骤"
+        fi
+        ENV_FILE="$file"
+        break
+    fi
+done
+
+# 如果未找到任何文件，则默认使用 .bashrc
+if [ -z "$ENV_FILE" ]; then
+    echo "$ALIAS_LINE" >> "$HOME/.bashrc"
+    ENV_FILE="$HOME/.bashrc"
+    print_info "已将 '$ALIAS_LINE' 添加到 $HOME/.bashrc"
 fi
 
 # 清除命令缓存
@@ -88,10 +99,8 @@ hash -d $ALIAS_CMD 2>/dev/null
 
 # 立即生效环境变量
 print_info "尝试立即加载环境变量..."
-if [ -f "$HOME/.bashrc" ]; then
-    source "$HOME/.bashrc"
-elif [ -f "$HOME/.bash_profile" ]; then
-    source "$HOME/.bash_profile"
+if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
 fi
 
 # 验证安装结果
@@ -110,8 +119,19 @@ else
     print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
     echo
     echo -e "${GREEN}使用方法:${RESET}"
-    echo "  1. 在当前终端执行: ${CYAN}source ~/.bashrc${RESET}"
+    echo "  1. 在当前终端执行: ${CYAN}source $ENV_FILE${RESET}"
     echo "  2. 或重新启动终端"
     echo "  3. 执行 ${CYAN}$ALIAS_CMD${RESET} 命令启动框架"
     echo
-fi    
+fi
+
+# 额外检查：检测登录 shell 类型并提供明确提示
+CURRENT_SHELL=$(basename "$SHELL")
+echo
+echo -e "${YELLOW}[重要提示]${RESET}"
+echo "您当前使用的 shell 是: ${CYAN}$CURRENT_SHELL${RESET}"
+echo "如果重新登录后命令不可用，请确认:"
+echo "  1. 对于 bash 用户: 确保 ~/.bashrc 或 ~/.bash_profile 被正确加载"
+echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含别名定义"
+echo "  3. 对于其他 shell: 请参考对应 shell 的配置文件"
+echo    
