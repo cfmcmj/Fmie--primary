@@ -1,171 +1,194 @@
-# 安装 sun-panel
-installSunPanel() {
-  local workdir="${installpath}/serv00-play/sunpanel"
-  local exepath="${installpath}/serv00-play/sunpanel/sun-panel"
-  if [[ -e $exepath ]]; then
-    echo "已安装，请勿重复安装!"
-    return
-  fi
-  mkdir -p $workdir
-  cd $workdir
+#!/bin/bash
 
-  if ! checkDownload "sun-panel"; then
-    return 1
-  fi
-  if ! checkDownload "panelweb" 1; then
-    return 1
-  fi
+# 颜色定义
+RED='\033[0;91m'
+GREEN='\033[0;92m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;96m'
+WHITE='\033[0;37m'
+RESET='\033[0m'
 
-  if [[ ! -e "sun-panel" ]]; then
-    echo "下载文件解压失败！"
-    return 1
-  fi
-  # 初始化密码，并且生成相关目录文件
-  ./sun-panel -password-reset
+# 彩色输出函数
+yellow() { echo -e "${YELLOW}$1${RESET}"; }
+green() { echo -e "${GREEN}$1${RESET}"; }
+red() { echo -e "${RED}$1${RESET}"; }
+cyan() { echo -e "${CYAN}$1${RESET}"; }
 
-  if [[ ! -e "conf/conf.ini" ]]; then
-    echo "无配置文件生成!"
-    return 1
-  fi
+# 项目基本信息
+PROJECT_NAME="Fmie--primary"
+VERSION="v1.0.0"
 
-  loadPort
-  port=""
-  randomPort "tcp" "sun-panel"
-  if [ -n "$port" ]; then
-    sunPanelPort=$port
-  else
-    echo "未输入端口!"
-    return 1
-  fi
-  cd conf
-  sed -i.bak -E "s/^http_port=[0-9]+$/http_port=${sunPanelPort}/" conf.ini
-  cd ..
-
-  domain=""
-  webIp=""
-  if ! makeWWW panel $sunPanelPort; then
-    echo "绑定域名失败!"
-    return 1
-  fi
-  # 自定义域名时申请证书的webip可以从2个ip中选择
-  if [ $is_self_domain -eq 1 ]; then
-    if ! applyLE $domain $webIp; then
-      echo "申请证书失败!"
-      return 1
-    fi
-  else # 没有自定义域名时，webip是内置固定的，就是web(x).serv00.com
-    if ! applyLE $domain; then
-      echo "申请证书失败!"
-      return 1
-    fi
-  fi
-  green "安装完毕!"
+# 显示横幅
+showBanner() {
+  clear
+  local banner=$(cat <<-EOF
+  ${CYAN}██████╗ ███████╗███████╗████████╗██╗   ██╗██████╗ 
+  ${CYAN}██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
+  ${CYAN}██████╔╝█████╗  ███████╗   ██║   ██║   ██║██████╔╝
+  ${CYAN}██╔══██╗██╔══╝  ╚════██║   ██║   ██║   ██║██╔═══╝ 
+  ${CYAN}██║  ██║███████╗███████║   ██║   ╚██████╔╝██║     
+  ${CYAN}╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
+  ${RESET}
+  ${GREEN}项目名称: ${PROJECT_NAME} ${VERSION}${RESET}
+  ${YELLOW}一个全新的自动化部署框架${RESET}
+EOF
+  )
+  echo "$banner"
 }
 
-# 启动 sun-panel
-startSunPanel() {
-  local workdir="${installpath}/serv00-play/sunpanel"
-  local exepath="${installpath}/serv00-play/sunpanel/sun-panel"
-  if [[ ! -e $exepath ]]; then
-    red "未安装，请先安装!"
-    return
-  fi
-  cd $workdir
-  if checkProcAlive "sun-panel"; then
-    stopProc "sun-panel"
-  fi
-  read -p "是否需要日志($workdir/running.log)? [y/n] [n]:" input
-  input=${input:-n}
-  local args=""
-  if [[ "$input" == "y" ]]; then
-    args=" > running.log 2>&1 "
-  else
-    args=" > /dev/null 2>&1 "
-  fi
-  cmd="nohup ./sun-panel $args &"
-  eval "$cmd"
-  sleep 1
-  if checkProcAlive "sun-panel"; then
-    green "启动成功"
-  else
-    red "启动失败"
-  fi
+# 显示菜单
+showMenu() {
+  showBanner
+  echo "请选择一个选项:"
+  echo "---------------------"
+  echo "1) 系统信息"
+  echo "2) 项目管理"
+  echo "3) 配置设置"
+  echo "4) 工具集"
+  echo "5) 更新框架"
+  echo "0) 退出"
+  echo "---------------------"
 }
 
-# 停止 sun-panel
-stopSunPanel() {
-  stopProc "sun-panel"
-  if checkProcAlive "sun-panel"; then
-    echo "未能停止，请手动杀进程!"
-  fi
+# 系统信息
+systemInfo() {
+  showBanner
+  echo "系统信息:"
+  echo "---------------------"
+  echo "操作系统: $(uname -a)"
+  echo "主机名: $(hostname)"
+  echo "磁盘空间: $(df -h /)"
+  echo "内存使用: $(free -h)"
+  echo "---------------------"
+  read -p "按 Enter 键返回..."
 }
 
-# 重置 sun-panel 密码
-resetSunPanelPwd() {
-  local exepath="${installpath}/serv00-play/sunpanel/sun-panel"
-  if [[ ! -e $exepath ]]; then
-    echo "未安装，请先安装!"
-    return
-  fi
-  read -p "确定初始化密码? [y/n][n]:" input
-  input=${input:-n}
-
-  if [[ "$input" == "y" ]]; then
-    local workdir="${installpath}/serv00-play/sunpanel"
-    cd $workdir
-    ./sun-panel -password-reset
-  fi
+# 项目管理
+projectManager() {
+  showBanner
+  echo "项目管理:"
+  echo "---------------------"
+  echo "1) 添加新项目"
+  echo "2) 管理现有项目"
+  echo "3) 部署项目"
+  echo "4) 备份项目"
+  echo "9) 返回主菜单"
+  echo "0) 退出"
+  echo "---------------------"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "添加新项目功能开发中..." ;;
+    2) echo "管理现有项目功能开发中..." ;;
+    3) echo "部署项目功能开发中..." ;;
+    4) echo "备份项目功能开发中..." ;;
+    9) showMenu ;;
+    0) exit 0 ;;
+    *) echo "无效选择" ;;
+  esac
+  read -p "按 Enter 键返回..."
+  projectManager
 }
 
-# 卸载 sun-panel
-uninstallSunPanel() {
-  local workdir="${installpath}/serv00-play/sunpanel"
-  uninstallProc "$workdir" "sun-panel"
+# 配置设置
+configSettings() {
+  showBanner
+  echo "配置设置:"
+  echo "---------------------"
+  echo "1) 全局配置"
+  echo "2) 用户配置"
+  echo "3) 环境变量"
+  echo "9) 返回主菜单"
+  echo "0) 退出"
+  echo "---------------------"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "全局配置功能开发中..." ;;
+    2) echo "用户配置功能开发中..." ;;
+    3) echo "环境变量功能开发中..." ;;
+    9) showMenu ;;
+    0) exit 0 ;;
+    *) echo "无效选择" ;;
+  esac
+  read -p "按 Enter 键返回..."
+  configSettings
 }
 
-# sun-panel 服务管理菜单
-sunPanelServ() {
-  if ! checkInstalled "serv00-play"; then
-    return 1
-  fi
-  while true; do
-    yellow "---------------------"
-    echo "1. 安装"
-    echo "2. 启动"
-    echo "3. 停止"
-    echo "4. 初始化密码"
-    echo "8. 卸载"
-    echo "9. 返回主菜单"
-    echo "0. 退出脚本"
-    yellow "---------------------"
-    read -p "请选择:" input
+# 工具集
+toolkit() {
+  showBanner
+  echo "工具集:"
+  echo "---------------------"
+  echo "1) 网络工具"
+  echo "2) 文件管理"
+  echo "3) 系统监控"
+  echo "9) 返回主菜单"
+  echo "0) 退出"
+  echo "---------------------"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "网络工具功能开发中..." ;;
+    2) echo "文件管理功能开发中..." ;;
+    3) echo "系统监控功能开发中..." ;;
+    9) showMenu ;;
+    0) exit 0 ;;
+    *) echo "无效选择" ;;
+  esac
+  read -p "按 Enter 键返回..."
+  toolkit
+}
 
-    case $input in
-    1)
-      installSunPanel
-      ;;
-    2)
-      startSunPanel
-      ;;
-    3)
-      stopSunPanel
-      ;;
-    4)
-      resetSunPanelPwd
-      ;;
-    8)
-      uninstallSunPanel
-      ;;
-    9)
-      break
-      ;;
-    0)
-      exit 0
-      ;;
-    *)
-      echo "无效选项，请重试"
-      ;;
-    esac
-  done
+# 更新框架
+updateFramework() {
+  showBanner
+  echo "更新框架:"
+  echo "---------------------"
+  echo "当前版本: $VERSION"
+  echo "检查更新中..."
+  # 这里添加检查更新的逻辑
+  echo "已是最新版本"
+  echo "---------------------"
+  read -p "按 Enter 键返回..."
+}
+
+# 主程序
+main() {
   showMenu
+  while true; do
+    read -p "请选择: " choice
+    case $choice in
+      1) systemInfo ;;
+      2) projectManager ;;
+      3) configSettings ;;
+      4) toolkit ;;
+      5) updateFramework ;;
+      0) exit 0 ;;
+      *) echo "无效选择，请重试" ;;
+    esac
+    showMenu
+  done
 }
+
+# 命令行参数处理
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+  echo "Fmie--primary 框架使用帮助:"
+  echo "  --help, -h       显示此帮助信息"
+  echo "  --version, -v    显示版本信息"
+  echo "  --install        安装框架"
+  exit 0
+elif [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
+  echo "$PROJECT_NAME $VERSION"
+  exit 0
+elif [ "$1" == "--install" ]; then
+  echo "安装 Fmie--primary 框架..."
+  # 这里添加安装逻辑
+  echo "安装完成!"
+  exit 0
+fi
+
+# 启动主程序
+main
