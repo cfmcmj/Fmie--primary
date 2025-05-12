@@ -72,9 +72,16 @@ ENV_FILE=""
 # 查找当前用户使用的 shell 对应的配置文件
 for file in "${ENV_FILES[@]}"; do
     if [ -f "$file" ]; then
-        # 移除旧的 alias 定义
+        # 移除旧的 alias 定义（改进版 sed 命令）
         if grep -q "alias $ALIAS_CMD=" "$file"; then
-            sed -i "/alias $ALIAS_CMD=/d" "$file"
+            # 检测 sed 是否支持 -i 参数
+            if sed --version 2>/dev/null | grep -q "GNU"; then
+                # GNU sed
+                sed -i '/alias '"$ALIAS_CMD"'=/d' "$file"
+            else
+                # BSD sed (macOS/FreeBSD)
+                sed -i '' '/alias '"$ALIAS_CMD"'=/d' "$file"
+            fi
             print_info "已从 $file 中移除旧的 alias 定义"
         fi
         
@@ -120,7 +127,7 @@ fi
 print_info "清除命令缓存..."
 hash -d $ALIAS_CMD 2>/dev/null
 
-# 立即生效环境变量
+# 立即生效环境变量（改进版验证）
 print_info "尝试立即加载环境变量..."
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
     # 在子 shell 中加载并验证
@@ -131,7 +138,7 @@ if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
     fi
 fi
 
-# 验证安装结果
+# 验证安装结果（改进版验证）
 print_info "验证安装结果..."
 # 使用子 shell 验证，避免影响当前环境
 if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
@@ -160,7 +167,7 @@ echo
 echo -e "${YELLOW}[重要提示]${RESET}"
 echo "您当前使用的 shell 是: ${CYAN}$CURRENT_SHELL${RESET}"
 echo "如果重新登录后命令不可用，请确认:"
-echo "  1. 对于 bash 用户: 确保 ~/.bash_profile 存在并加载 ~/.bashrc"
+echo "  1. 对于 bash 用户: 确保 ~/.bash_profile 存在并正确加载 ~/.bashrc"
 echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含函数定义"
 echo "  3. 对于其他 shell: 请参考对应 shell 的配置文件"
 echo    
