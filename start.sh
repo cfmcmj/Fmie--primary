@@ -20,20 +20,17 @@ VERSION="v1.0.0"
 showBanner() {
   clear
   echo -e "$(cat << EOF
-  ${CYAN}╔══════════════════════════════════════════════════╗
-  ${CYAN}║${RESET}                                              ${CYAN}║
-  ${CYAN}║${RESET}    ${RED}_____          ${GREEN}_                             ${BLUE}_      ${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}   ${RED}|  ___| __ ___ ${GREEN}(_) ___             ${BLUE}_ __  _ __(${BLUE}_)${YELLOW}_ __ ___   ${MAGENTA}__ _ ${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}   ${RED}| |_ | '_ \` _ \ ${GREEN}| |/ _ \_____ ${BLUE}_____| '_ \| '__|${YELLOW}| '_ \` _ \ ${MAGENTA}/ _\` |${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}   ${RED}|  _|| | | | | | ${GREEN}| |  __/_____|${BLUE}_____| |_) | |  |${YELLOW}| | | | | | ${MAGENTA}| (_| |${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}   ${RED}|_|  |_| |_| |_|${GREEN}_|\___|           ${BLUE}| .__/|_|  |${YELLOW}|_| |_| |_| ${MAGENTA}\__,_|${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}                                  ${BLUE}|_|                                ${MAGENTA}|___/${RESET}    ${CYAN}║
-  ${CYAN}║${RESET}                                              ${CYAN}║
-  ${CYAN}║${RESET}       ${MAGENTA}项目名称: Fmie-pry ${VERSION}${RESET}                     ${CYAN}║
-  ${CYAN}║${RESET}       ${GREEN}一个全新的自动化部署框架${RESET}                     ${CYAN}║
-  ${CYAN}║${RESET}                                              ${CYAN}║
-  ${CYAN}╚══════════════════════════════════════════════════╝
-  ${RESET}
+    
+$$$$$$$$\ $$\      $$\ $$$$$$\ $$$$$$$$\      $$$$$$$\ $$$$$$$$\ 
+$$  _____|$$$\    $$$ |\_$$  _|$$  _____|     $$  __$$\\__$$  __|
+$$ |      $$$$\  $$$$ |  $$ |  $$ |           $$ |  $$ |  $$ |   
+$$$$$\    $$\$$\$$ $$ |  $$ |  $$$$$\ $$$$$$\ $$$$$$$  |  $$ |   
+$$  __|   $$ \$$$  $$ |  $$ |  $$  __|\______|$$  ____/   $$ |   
+$$ |      $$ |\$  /$$ |  $$ |  $$ |           $$ |        $$ |   
+$$ |      $$ | \_/ $$ |$$$$$$\ $$$$$$$$\      $$ |        $$ |   
+\__|      \__|     \__|\______|\________|     \__|        \__|   
+                                                                 
+
 EOF
 )"
   echo -e "${CYAN}使用方法:${RESET} gg [选项]"
