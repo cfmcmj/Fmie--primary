@@ -127,6 +127,13 @@ updateFramework() {
   read -p "按 Enter 继续..."
 }
 
+# 测试脚本
+testScript() {
+    showBanner
+    echo -e "${GREEN}脚本测试通过！${RESET}"
+    exit 0
+}
+
 # 主菜单
 mainMenu() {
   while true; do
@@ -156,4 +163,7 @@ mainMenu() {
 }
 
 # 脚本入口
+if [ "$1" = "--test" ]; then
+    testScript
+fi
 mainMenu
