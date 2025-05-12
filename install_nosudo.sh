@@ -32,14 +32,19 @@ mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 print_info "从 GitHub 下载最新框架代码..."
 curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
 
-# 处理 Windows 换行符问题（改进版）
+# 处理 Windows 换行符问题（终极版）
 print_info "确保脚本使用 Unix 格式换行符..."
-if ! sed -i 's/\r$//' "$PROJECT_DIR/start.sh"; then
-    print_info "警告: 转换换行符失败，尝试替代方法..."
-    # 替代方法
-    tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"
-    mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
-    chmod +x "$PROJECT_DIR/start.sh"
+if command -v python3 &>/dev/null; then
+    python3 -c "content = open('$PROJECT_DIR/start.sh', 'r').read().replace('\r\n', '\n'); open('$PROJECT_DIR/start.sh', 'w').write(content)" || handle_error "无法修复换行符问题"
+elif command -v python &>/dev/null; then
+    python -c "content = open('$PROJECT_DIR/start.sh', 'r').read().replace('\r\n', '\n'); open('$PROJECT_DIR/start.sh', 'w').write(content)" || handle_error "无法修复换行符问题"
+else
+    print_info "警告: 没有找到 Python，尝试使用 dos2unix..."
+    if command -v dos2unix &>/dev/null; then
+        dos2unix "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+    else
+        handle_error "没有找到合适的工具来修复换行符问题，请安装 dos2unix 或 Python"
+    fi
 fi
 
 # 设置执行权限
@@ -76,13 +81,12 @@ elif [ -f "$HOME/.bash_profile" ]; then
     source "$HOME/.bash_profile"
 fi
 
-# 验证安装结果
+# 验证安装结果（改进版）
 print_info "验证安装结果..."
-if command -v $ALIAS_CMD &>/dev/null || type $ALIAS_CMD &>/dev/null; then
+if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
     print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
-    
     # 测试脚本是否能正常执行
-    if $ALIAS_CMD --test &>/dev/null; then
+    if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
         print_info "框架脚本测试通过！"
     else
         print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
