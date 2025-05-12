@@ -1,7 +1,5 @@
 #!/bin/bash
-
 # Fmie--primary 一键安装脚本（无 sudo 版本）
-
 # 颜色定义
 RED='\033[0;91m'
 GREEN='\033[0;92m'
@@ -44,10 +42,16 @@ echo "#!/bin/bash" > "$BIN_DIR/gg"
 echo "$PROJECT_DIR/start.sh" >> "$BIN_DIR/gg"
 chmod +x "$BIN_DIR/gg" || error "无法设置快捷命令权限"
 
-# 添加 bin 目录到 PATH（临时）
-export PATH="$BIN_DIR:$PATH"
+# 配置环境变量
+info "配置环境变量，使'gg'命令永久可用..."
+if! grep -q "$BIN_DIR" ~/.bashrc; then
+    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.bashrc
+    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.profile
+    info "已将'export PATH=\"$BIN_DIR:\$PATH\"'添加到 ~/.bashrc 和 ~/.profile"
+fi
+
+# 使环境变量在当前会话生效
+source ~/.bashrc
 
 info "安装完成！"
-info "现在你可以通过执行 '$BIN_DIR/gg' 命令启动 Fmie--primary 框架。"
-info "为了永久使用 'gg' 命令，请将以下行添加到你的 ~/.bashrc 或 ~/.profile 文件中："
-info "  export PATH=\"$BIN_DIR:\$PATH\""
+info "现在你可以直接通过执行 'gg' 命令启动 Fmie--primary 框架。"
