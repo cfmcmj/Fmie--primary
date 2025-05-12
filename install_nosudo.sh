@@ -20,7 +20,8 @@ print_info() {
 
 # 定义安装目录
 PROJECT_DIR="$HOME/Fmie--primary"
-ALIAS_CMD="gg"  # 快捷命令名称
+ORIGINAL_CMD="ss"  # 原始启动命令
+ALIAS_CMD="gg"     # 快捷命令名称
 
 # 开始安装
 print_info "开始安装 Fmie--primary 框架..."
@@ -32,23 +33,21 @@ mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 print_info "从 GitHub 下载最新框架代码..."
 curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
 
-# 处理 Windows 换行符问题（终极版）
+# 处理 Windows 换行符问题（改进版）
 print_info "确保脚本使用 Unix 格式换行符..."
-if command -v python3 &>/dev/null; then
-    python3 -c "content = open('$PROJECT_DIR/start.sh', 'r').read().replace('\r\n', '\n'); open('$PROJECT_DIR/start.sh', 'w').write(content)" || handle_error "无法修复换行符问题"
-elif command -v python &>/dev/null; then
-    python -c "content = open('$PROJECT_DIR/start.sh', 'r').read().replace('\r\n', '\n'); open('$PROJECT_DIR/start.sh', 'w').write(content)" || handle_error "无法修复换行符问题"
-else
-    print_info "警告: 没有找到 Python，尝试使用 dos2unix..."
-    if command -v dos2unix &>/dev/null; then
-        dos2unix "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
-    else
-        handle_error "没有找到合适的工具来修复换行符问题，请安装 dos2unix 或 Python"
-    fi
+if ! sed -i 's/\r$//' "$PROJECT_DIR/start.sh"; then
+    print_info "警告: 转换换行符失败，尝试替代方法..."
+    tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"
+    mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+    chmod +x "$PROJECT_DIR/start.sh"
 fi
 
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
+
+# 创建原始命令软链接
+print_info "创建原始命令 '$ORIGINAL_CMD'..."
+ln -sf "$PROJECT_DIR/start.sh" "$PROJECT_DIR/$ORIGINAL_CMD" || handle_error "无法创建软链接"
 
 # 创建快捷命令（使用 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
@@ -61,6 +60,20 @@ if [ -f "$HOME/.bash_profile" ]; then
     ENV_FILE="$HOME/.bash_profile"
 fi
 
+# 添加 bin 目录到 PATH
+BIN_DIR="$PROJECT_DIR/bin"
+mkdir -p "$BIN_DIR" || handle_error "无法创建 bin 目录"
+ln -sf "$PROJECT_DIR/start.sh" "$BIN_DIR/$ORIGINAL_CMD" || handle_error "无法创建软链接"
+
+# 添加 PATH 配置
+PATH_LINE="export PATH=\$PATH:$BIN_DIR"
+if ! grep -q "$PATH_LINE" "$ENV_FILE"; then
+    echo "$PATH_LINE" >> "$ENV_FILE"
+    print_info "已将 '$PATH_LINE' 添加到 $ENV_FILE"
+else
+    print_info "PATH 已配置，跳过此步骤"
+fi
+
 # 添加 alias 到环境文件
 if ! grep -q "$ALIAS_LINE" "$ENV_FILE"; then
     echo "$ALIAS_LINE" >> "$ENV_FILE"
@@ -71,9 +84,10 @@ fi
 
 # 清除命令缓存
 print_info "清除命令缓存..."
+hash -d $ORIGINAL_CMD 2>/dev/null
 hash -d $ALIAS_CMD 2>/dev/null
 
-# 立即生效 alias
+# 立即生效环境变量
 print_info "尝试立即加载环境变量..."
 if [ -f "$HOME/.bashrc" ]; then
     source "$HOME/.bashrc"
@@ -81,18 +95,19 @@ elif [ -f "$HOME/.bash_profile" ]; then
     source "$HOME/.bash_profile"
 fi
 
-# 验证安装结果（改进版）
+# 验证安装结果
 print_info "验证安装结果..."
-if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
-    print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
+if command -v $ORIGINAL_CMD &>/dev/null; then
+    print_info "安装成功！'$ORIGINAL_CMD' 命令已可用。"
+    
     # 测试脚本是否能正常执行
-    if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
+    if $ORIGINAL_CMD --test &>/dev/null; then
         print_info "框架脚本测试通过！"
     else
         print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
         print_info "您可以手动执行: $PROJECT_DIR/start.sh 查看详细错误。"
     fi
 else
-    print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
+    print_info "安装完成，但 '$ORIGINAL_CMD' 命令尚未生效。"
     print_info "请尝试重新启动终端或执行: source $ENV_FILE"
 fi

@@ -1,6 +1,9 @@
 #!/bin/bash
 # Fmie--primary 框架主入口脚本
 
+# 获取调用命令名
+CMD_NAME=$(basename "$0")
+
 # 检查依赖（改进版）
 check_dependencies() {
     MISSING=0
@@ -39,7 +42,7 @@ VERSION="v1.0.0"
 # 显示横幅
 showBanner() {
   clear
-  cat << 'EOF'
+  cat << EOF
   ${CYAN}╔══════════════════════════════════════════════════╗
   ${CYAN}║${RESET}                                              ${CYAN}║
   ${CYAN}║${RESET}    ${RED}_____          ${GREEN}_                             ${BLUE}_      ${RESET}    ${CYAN}║
@@ -55,9 +58,28 @@ showBanner() {
   ${CYAN}╚══════════════════════════════════════════════════╝
   ${RESET}
 EOF
+  echo -e "${CYAN}使用方法:${RESET} $CMD_NAME [选项]"
+  echo -e "${CYAN}选项:${RESET}"
+  echo -e "  --help\t显示此帮助信息"
+  echo -e "  --version\t显示版本信息"
+  echo -e "  --test\t测试脚本功能"
+  echo ""
 }
 
-# 系统信息（改进版）
+# 显示帮助信息
+showHelp() {
+  showBanner
+  echo -e "${CYAN}Fmie--primary 框架管理工具${RESET}"
+  echo ""
+  echo -e "${CYAN}主命令:${RESET}"
+  echo -e "  $CMD_NAME\t\t启动框架菜单"
+  echo -e "  $CMD_NAME --help\t显示此帮助信息"
+  echo -e "  $CMD_NAME --version\t显示版本信息"
+  echo -e "  $CMD_NAME --test\t测试脚本功能"
+  echo ""
+}
+
+# 系统信息
 systemInfo() {
   echo -e "${CYAN}系统信息:${RESET}"
   echo "主机名: $(hostname)"
@@ -164,13 +186,14 @@ testScript() {
     fi
     showBanner
     echo -e "${GREEN}脚本测试通过！${RESET}"
+    echo -e "${CYAN}命令名:${RESET} $CMD_NAME"
     exit 0
 }
 
 # 主菜单
 mainMenu() {
   while true; do
-    showBanner  # 显示横幅
+    showBanner
     echo "请选择一个选项:"
     echo "---------------------"
     echo "1) 系统信息"
@@ -197,7 +220,22 @@ mainMenu() {
 
 # 脚本入口
 check_dependencies
-if [ "$1" = "--test" ]; then
+
+# 处理命令行参数
+case "$1" in
+  --help|-h)
+    showHelp
+    exit 0
+    ;;
+  --version|-v)
+    echo "Fmie-pry 框架版本 $VERSION"
+    exit 0
+    ;;
+  --test)
     testScript
-fi
-mainMenu
+    ;;
+  *)
+    # 如果没有参数或参数无效，显示主菜单
+    mainMenu
+    ;;
+esac
