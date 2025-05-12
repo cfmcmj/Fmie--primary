@@ -84,24 +84,33 @@ systemInfo() {
   echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
   echo "内核版本: $(uname -r)"
   
-  # 内存信息（添加替代方法）
+  # 内存信息（改进版）
+  echo -e "${CYAN}内存信息:${RESET}"
   if command -v free &>/dev/null; then
-    echo "可用内存: $(free -h | grep Mem | awk '{print $7}')"
+      echo "  $(free -h | grep Mem | awk '{printf "总内存: %s, 已用: %s, 空闲: %s, 使用率: %s\n", $2, $3, $4, $5}')"
   else
-    # 尝试使用 /proc/meminfo 作为替代
-    if [ -f "/proc/meminfo" ]; then
-      available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
-      if [ -n "$available" ]; then
-        echo "可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+      if [ -f "/proc/meminfo" ]; then
+          total=$(grep "MemTotal:" /proc/meminfo | awk '{print $2}')
+          free=$(grep "MemFree:" /proc/meminfo | awk '{print $2}')
+          available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
+          
+          if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
+              used=$((total - free))
+              percent=$((used * 100 / total))
+              
+              echo "  总内存: $(echo "scale=2; $total/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+              echo "  可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+              echo "  使用率: ${percent}%"
+          else
+              echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
+          fi
       else
-        echo -e "${YELLOW}[提示]${RESET} 无法获取内存信息"
+          echo -e "  ${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
       fi
-    else
-      echo -e "${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
-    fi
   fi
   
-  echo "磁盘空间: $(df -h / | awk 'NR==2 {print $4}')"
+  echo -e "${CYAN}磁盘空间:${RESET}"
+  echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
   read -p "按 Enter 继续..."
 }
 
@@ -246,4 +255,4 @@ case "$1" in
     # 如果没有参数或参数无效，显示主菜单
     mainMenu
     ;;
-esac
+esac    

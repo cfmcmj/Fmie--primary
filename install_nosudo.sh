@@ -108,5 +108,10 @@ if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
     fi
 else
     print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
-    print_info "请尝试重新启动终端或执行: source $ENV_FILE"
-fi
+    echo
+    echo -e "${GREEN}使用方法:${RESET}"
+    echo "  1. 在当前终端执行: ${CYAN}source ~/.bashrc${RESET}"
+    echo "  2. 或重新启动终端"
+    echo "  3. 执行 ${CYAN}$ALIAS_CMD${RESET} 命令启动框架"
+    echo
+fi    
