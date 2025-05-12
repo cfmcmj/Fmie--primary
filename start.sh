@@ -1,9 +1,6 @@
 #!/bin/bash
 # Fmie--primary 框架主入口脚本
 
-# 获取调用命令名
-CMD_NAME=$(basename "$0")
-
 # 检查依赖（改进版）
 check_dependencies() {
     MISSING=0
@@ -39,10 +36,10 @@ RESET='\033[0m'
 # 版本信息
 VERSION="v1.0.0"
 
-# 显示横幅
+# 显示横幅（改进版）
 showBanner() {
   clear
-  cat << EOF
+  echo -e "$(cat << EOF
   ${CYAN}╔══════════════════════════════════════════════════╗
   ${CYAN}║${RESET}                                              ${CYAN}║
   ${CYAN}║${RESET}    ${RED}_____          ${GREEN}_                             ${BLUE}_      ${RESET}    ${CYAN}║
@@ -58,7 +55,8 @@ showBanner() {
   ${CYAN}╚══════════════════════════════════════════════════╝
   ${RESET}
 EOF
-  echo -e "${CYAN}使用方法:${RESET} $CMD_NAME [选项]"
+)"
+  echo -e "${CYAN}使用方法:${RESET} gg [选项]"
   echo -e "${CYAN}选项:${RESET}"
   echo -e "  --help\t显示此帮助信息"
   echo -e "  --version\t显示版本信息"
@@ -72,10 +70,10 @@ showHelp() {
   echo -e "${CYAN}Fmie--primary 框架管理工具${RESET}"
   echo ""
   echo -e "${CYAN}主命令:${RESET}"
-  echo -e "  $CMD_NAME\t\t启动框架菜单"
-  echo -e "  $CMD_NAME --help\t显示此帮助信息"
-  echo -e "  $CMD_NAME --version\t显示版本信息"
-  echo -e "  $CMD_NAME --test\t测试脚本功能"
+  echo -e "  gg\t\t启动框架菜单"
+  echo -e "  gg --help\t显示此帮助信息"
+  echo -e "  gg --version\t显示版本信息"
+  echo -e "  gg --test\t测试脚本功能"
   echo ""
 }
 
@@ -186,7 +184,6 @@ testScript() {
     fi
     showBanner
     echo -e "${GREEN}脚本测试通过！${RESET}"
-    echo -e "${CYAN}命令名:${RESET} $CMD_NAME"
     exit 0
 }
 

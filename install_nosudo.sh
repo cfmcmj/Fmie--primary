@@ -20,8 +20,7 @@ print_info() {
 
 # 定义安装目录
 PROJECT_DIR="$HOME/Fmie--primary"
-ORIGINAL_CMD="ss"  # 原始启动命令
-ALIAS_CMD="gg"     # 快捷命令名称
+ALIAS_CMD="gg"  # 快捷命令名称
 
 # 开始安装
 print_info "开始安装 Fmie--primary 框架..."
@@ -45,10 +44,6 @@ fi
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
-# 创建原始命令软链接
-print_info "创建原始命令 '$ORIGINAL_CMD'..."
-ln -sf "$PROJECT_DIR/start.sh" "$PROJECT_DIR/$ORIGINAL_CMD" || handle_error "无法创建软链接"
-
 # 创建快捷命令（使用 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
 ALIAS_LINE="alias $ALIAS_CMD=\"$PROJECT_DIR/start.sh\""
@@ -58,20 +53,6 @@ print_info "配置环境变量..."
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$HOME/.bash_profile" ]; then
     ENV_FILE="$HOME/.bash_profile"
-fi
-
-# 添加 bin 目录到 PATH
-BIN_DIR="$PROJECT_DIR/bin"
-mkdir -p "$BIN_DIR" || handle_error "无法创建 bin 目录"
-ln -sf "$PROJECT_DIR/start.sh" "$BIN_DIR/$ORIGINAL_CMD" || handle_error "无法创建软链接"
-
-# 添加 PATH 配置
-PATH_LINE="export PATH=\$PATH:$BIN_DIR"
-if ! grep -q "$PATH_LINE" "$ENV_FILE"; then
-    echo "$PATH_LINE" >> "$ENV_FILE"
-    print_info "已将 '$PATH_LINE' 添加到 $ENV_FILE"
-else
-    print_info "PATH 已配置，跳过此步骤"
 fi
 
 # 添加 alias 到环境文件
@@ -84,7 +65,6 @@ fi
 
 # 清除命令缓存
 print_info "清除命令缓存..."
-hash -d $ORIGINAL_CMD 2>/dev/null
 hash -d $ALIAS_CMD 2>/dev/null
 
 # 立即生效环境变量
@@ -97,17 +77,17 @@ fi
 
 # 验证安装结果
 print_info "验证安装结果..."
-if command -v $ORIGINAL_CMD &>/dev/null; then
-    print_info "安装成功！'$ORIGINAL_CMD' 命令已可用。"
+if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
+    print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
     
     # 测试脚本是否能正常执行
-    if $ORIGINAL_CMD --test &>/dev/null; then
+    if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
         print_info "框架脚本测试通过！"
     else
         print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
         print_info "您可以手动执行: $PROJECT_DIR/start.sh 查看详细错误。"
     fi
 else
-    print_info "安装完成，但 '$ORIGINAL_CMD' 命令尚未生效。"
+    print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
     print_info "请尝试重新启动终端或执行: source $ENV_FILE"
 fi
