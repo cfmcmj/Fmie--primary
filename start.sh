@@ -4,34 +4,27 @@
 RED='\033[0;91m'
 GREEN='\033[0;92m'
 YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
 CYAN='\033[0;96m'
-WHITE='\033[0;37m'
 RESET='\033[0m'
 
-# 彩色输出函数
-yellow() { echo -e "${YELLOW}$1${RESET}"; }
-green() { echo -e "${GREEN}$1${RESET}"; }
-red() { echo -e "${RED}$1${RESET}"; }
-cyan() { echo -e "${CYAN}$1${RESET}"; }
-
-# 项目基本信息
-PROJECT_NAME="Fmie--primary"
-VERSION="v1.0.0"
-
 # 显示横幅
-showBanner() {
+show_banner() {
   clear
-  _____         _                            _
-|  ___| __ ___ (_) ___             _ __  _ __(_)_ __ ___   __ _ _ __ _   _
-| |_ | '_ ` _ \| |/ _ \_____ _____| '_ \| '__| | '_ ` _ \ / _` | '__| | | |
-|  _|| | | | | | |  __/_____|_____| |_) | |  | | | | | | | (_| | |  | |_| |
-|_|  |_| |_| |_|_|\___|           | .__/|_|  |_|_| |_| |_|\__,_|_|   \__, |
-                                  |_|                                |___/
+  cat << 'EOF'
+  ${CYAN}╔══════════════════════════════════════════════════╗
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}║${RESET}    ${RED}|  ___| __ ___ ${GREEN}(_) ___             ${BLUE}_ __  _ __(${BLUE}_)${YELLOW}_ __ ___   ${MAGENTA}__ _ ${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}| |_ | '_ \` _ \ ${GREEN}| |/ _ \_____ ${BLUE}_____| '_ \| '__|${YELLOW}| '_ \` _ \ ${MAGENTA}/ _\` |${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}|  _|| | | | | | ${GREEN}| |  __/_____|${BLUE}_____| |_) | |  |${YELLOW}| | | | | | ${MAGENTA}| (_| |${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}|_|  |_| |_| |_|${GREEN}_|\___|           ${BLUE}| .__/|_|  |${YELLOW}|_| |_| |_| ${MAGENTA}\__,_|${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}                                  ${BLUE}|_|                                ${MAGENTA}|___/${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}║${RESET}       ${MAGENTA}项目名称: Fmie-pry ${VERSION}${RESET}                     ${CYAN}║
+  ${CYAN}║${RESET}       ${GREEN}一个全新的自动化部署框架${RESET}                     ${CYAN}║
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}╚══════════════════════════════════════════════════╝
+  ${RESET}
 EOF
-  )
-  echo "$banner"
 }
 
 # 显示菜单
