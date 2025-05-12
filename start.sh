@@ -1,6 +1,16 @@
 #!/bin/bash
 # Fmie--primary 框架主入口脚本
 
+# 检查依赖
+check_dependencies() {
+    for cmd in clear hostname cat free df uname; do
+        if ! command -v "$cmd" &>/dev/null; then
+            echo -e "${RED}[错误]${RESET} 缺少必要的命令: $cmd" >&2
+            exit 1
+        fi
+    done
+}
+
 # 颜色定义
 RED='\033[0;91m'
 GREEN='\033[0;92m'
@@ -129,6 +139,10 @@ updateFramework() {
 
 # 测试脚本
 testScript() {
+    if ! type showBanner &>/dev/null; then
+        echo -e "${RED}[错误]${RESET} showBanner 函数未定义" >&2
+        exit 1
+    fi
     showBanner
     echo -e "${GREEN}脚本测试通过！${RESET}"
     exit 0
@@ -163,6 +177,7 @@ mainMenu() {
 }
 
 # 脚本入口
+check_dependencies
 if [ "$1" = "--test" ]; then
     testScript
 fi

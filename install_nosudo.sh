@@ -32,9 +32,15 @@ mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 print_info "从 GitHub 下载最新框架代码..."
 curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
 
-# 处理 Windows 换行符问题
+# 处理 Windows 换行符问题（改进版）
 print_info "确保脚本使用 Unix 格式换行符..."
-sed -i 's/\r$//' "$PROJECT_DIR/start.sh"
+if ! sed -i 's/\r$//' "$PROJECT_DIR/start.sh"; then
+    print_info "警告: 转换换行符失败，尝试替代方法..."
+    # 替代方法
+    tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"
+    mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+    chmod +x "$PROJECT_DIR/start.sh"
+fi
 
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
@@ -63,7 +69,12 @@ print_info "清除命令缓存..."
 hash -d $ALIAS_CMD 2>/dev/null
 
 # 立即生效 alias
-eval "$ALIAS_LINE"
+print_info "尝试立即加载环境变量..."
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+elif [ -f "$HOME/.bash_profile" ]; then
+    source "$HOME/.bash_profile"
+fi
 
 # 验证安装结果
 print_info "验证安装结果..."
