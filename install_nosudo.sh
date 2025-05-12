@@ -21,6 +21,7 @@ print_info() {
 # 定义安装目录
 PROJECT_DIR="$HOME/Fmie--primary"
 BIN_DIR="$HOME/bin"
+ALIAS_CMD="gg"  # 快捷命令名称
 
 print_info "开始安装 Fmie--primary 框架..."
 
@@ -34,45 +35,34 @@ curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
-# 创建快捷命令目录（如果不存在）
-mkdir -p "$BIN_DIR" || handle_error "无法创建 bin 目录: $BIN_DIR"
+# 创建快捷命令（使用 alias 而非直接写入 bin）
+print_info "创建快捷命令 '$ALIAS_CMD'..."
+ALIAS_LINE="alias $ALIAS_CMD=\"$PROJECT_DIR/start.sh\""
 
-# 创建快捷命令
-print_info "创建快捷命令 'gg'..."
-cat > "$BIN_DIR/gg" << EOF
-#!/bin/bash
-$PROJECT_DIR/start.sh "\$@"
-EOF
-chmod +x "$BIN_DIR/gg" || handle_error "无法设置快捷命令权限"
-
-# 配置环境变量（改进版）
-print_info "配置环境变量，使 'gg' 命令永久可用..."
+# 配置环境变量（使用 alias）
+print_info "配置环境变量..."
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$HOME/.bash_profile" ]; then
-    ENV_FILE="$HOME/.bash_profile"  # 使用 .bash_profile 替代 .bashrc
+    ENV_FILE="$HOME/.bash_profile"
 fi
 
-if ! grep -q "$BIN_DIR" "$ENV_FILE"; then
-    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$ENV_FILE"
-    print_info "已将 'export PATH=\"$BIN_DIR:\$PATH\"' 添加到 $ENV_FILE"
+# 添加 alias 到环境文件
+if ! grep -q "$ALIAS_LINE" "$ENV_FILE"; then
+    echo "$ALIAS_LINE" >> "$ENV_FILE"
+    print_info "已将 '$ALIAS_LINE' 添加到 $ENV_FILE"
 else
-    print_info "环境变量已配置，跳过此步骤"
+    print_info "alias 已配置，跳过此步骤"
 fi
 
-# 立即生效环境变量
-print_info "尝试立即生效环境变量..."
-if [ -f "$HOME/.bashrc" ]; then
-    source "$HOME/.bashrc"
-elif [ -f "$HOME/.bash_profile" ]; then
-    source "$HOME/.bash_profile"
-fi
+# 立即生效 alias
+eval "$ALIAS_LINE"
 
 # 验证安装结果
 print_info "验证安装结果..."
-if command -v gg &>/dev/null; then
-    print_info "安装成功！'gg' 命令已可用。"
-    gg --version
+if command -v $ALIAS_CMD &>/dev/null || type $ALIAS_CMD &>/dev/null; then
+    print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
+    $ALIAS_CMD --version
 else
-    print_info "安装完成，但 'gg' 命令尚未生效。"
+    print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
     print_info "请尝试重新启动终端或执行: source $ENV_FILE"
 fi
