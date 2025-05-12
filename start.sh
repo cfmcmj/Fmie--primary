@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fmie--primary 框架主入口脚本
+# Fmie--primary 框架主入口脚本（FreeBSD 兼容版）
 
 # 捕获中断信号（Ctrl+C）
 trap 'echo -e "\n${RED}[信息]${RESET} 已中断操作"; exit 1' SIGINT SIGTERM
@@ -16,7 +16,7 @@ RESET='\033[0m'
 # 版本信息
 VERSION="v1.0.0"
 
-# 显示横幅（改进版）
+# 显示横幅
 showBanner() {
   clear
   echo -e "$(cat << EOF
@@ -173,7 +173,9 @@ projectManager() {
   echo "4) 删除项目"
   echo "0) 返回主菜单"
   
+  # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
+  
   case $choice in
     1) echo "创建新项目..." ;;
     2) echo "部署现有项目..." ;;
@@ -193,7 +195,9 @@ configSettings() {
   echo "3) 设置环境变量"
   echo "0) 返回主菜单"
   
+  # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
+  
   case $choice in
     1) echo "修改系统配置..." ;;
     2) echo "管理用户账户..." ;;
@@ -213,7 +217,9 @@ toolkit() {
   echo "4) 网络工具"
   echo "0) 返回主菜单"
   
+  # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
+  
   case $choice in
     1) echo "文件管理器..." ;;
     2) echo "日志查看器..." ;;
@@ -233,6 +239,8 @@ updateFramework() {
   # 模拟更新检查
   sleep 2
   echo "发现新版本! 是否更新? (y/n)"
+  
+  # FreeBSD 兼容的 read 命令
   read -p "选择: " confirm
   
   if [ "$confirm" = "y" ]; then
@@ -257,11 +265,8 @@ testScript() {
     exit 0
 }
 
-# 主菜单（改进版，添加输入超时处理）
+# 主菜单（FreeBSD 兼容版）
 mainMenu() {
-  # 设置 read 超时（5分钟）
-  TMOUT=300
-  
   while true; do
     showBanner
     echo "请选择一个选项:"
@@ -274,12 +279,8 @@ mainMenu() {
     echo "0) 退出"
     echo "---------------------"
     
-    # 带超时的输入
-    read -t $TMOUT -p "请选择: " choice
-    if [ $? -eq 142 ]; then
-        echo -e "\n${YELLOW}[信息]${RESET} 操作超时，返回主菜单..."
-        continue
-    fi
+    # FreeBSD 兼容的 read 命令（禁用超时）
+    read -p "请选择: " choice
     
     case $choice in
       1) systemInfo ;;
