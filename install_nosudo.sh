@@ -130,6 +130,19 @@ hash -d $ALIAS_CMD 2>/dev/null
 # 立即生效环境变量（改进版验证）
 print_info "尝试立即加载环境变量..."
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+    # 检查 .bashrc 第一行是否有语法错误
+    if head -n1 "$ENV_FILE" | grep -q "alias gg="; then
+        echo -e "${YELLOW}[警告]${RESET} 检测到 .bashrc 第一行存在旧的 alias 定义，正在修复..."
+        # 检测 sed 是否支持 -i 参数
+        if sed --version 2>/dev/null | grep -q "GNU"; then
+            sed -i '1d' "$ENV_FILE"
+        else
+            # BSD sed 需要临时文件
+            sed '1d' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
+        fi
+        print_info "已修复 .bashrc 文件"
+    fi
+    
     # 在子 shell 中加载并验证
     if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
         print_info "环境变量已成功加载！"
