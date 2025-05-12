@@ -34,30 +34,27 @@ curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o
 
 # 处理 Windows 换行符问题（增强版）
 print_info "确保脚本使用 Unix 格式换行符..."
-SED_SUCCESS=0
-
-# 尝试使用最常见的 sed 语法
-if sed -i 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
-    SED_SUCCESS=1
-# 尝试 macOS/BSD 版本的 sed
-elif sed -i '' 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
-    SED_SUCCESS=1
-# 尝试使用双引号版本的 sed 命令
-elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
-    SED_SUCCESS=1
-fi
-
-if [ $SED_SUCCESS -eq 0 ]; then
-    print_info "警告: sed 命令失败，尝试替代方法..."
-    # 使用 tr 命令替代
-    if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
-        mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
-        chmod +x "$PROJECT_DIR/start.sh"
-    else
-        handle_error "无法修复换行符问题，请检查文件权限"
-    fi
+if command -v dos2unix &>/dev/null; then
+    dos2unix "$PROJECT_DIR/start.sh" || print_info "警告: dos2unix 执行失败，尝试替代方法"
 else
-    print_info "成功转换换行符"
+    # 尝试使用 sed
+    SED_SUCCESS=0
+    if sed -i 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+        SED_SUCCESS=1
+    elif sed -i '' 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+        SED_SUCCESS=1
+    elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+        SED_SUCCESS=1
+    fi
+    
+    if [ $SED_SUCCESS -eq 0 ]; then
+        print_info "警告: sed 命令失败，尝试使用 tr"
+        if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
+            mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+        else
+            handle_error "无法修复换行符问题，请检查文件权限"
+        fi
+    fi
 fi
 
 # 设置执行权限
@@ -100,6 +97,23 @@ if [ -z "$ENV_FILE" ]; then
     echo "$FUNCTION_LINE" >> "$HOME/.bashrc"
     ENV_FILE="$HOME/.bashrc"
     print_info "已将函数定义添加到 $HOME/.bashrc"
+fi
+
+# 确保 .bash_profile 存在并加载 .bashrc (针对 bash)
+if [ "$(basename "$SHELL")" = "bash" ]; then
+    if [ ! -f "$HOME/.bash_profile" ]; then
+        echo -e "\n# Load .bashrc if it exists" > "$HOME/.bash_profile"
+        echo "if [ -f \"$HOME/.bashrc\" ]; then" >> "$HOME/.bash_profile"
+        echo "    . \"$HOME/.bashrc\"" >> "$HOME/.bash_profile"
+        echo "fi" >> "$HOME/.bash_profile"
+        print_info "已创建 $HOME/.bash_profile"
+    elif ! grep -q "\. \"$HOME/.bashrc\"" "$HOME/.bash_profile"; then
+        echo -e "\n# Load .bashrc" >> "$HOME/.bash_profile"
+        echo "if [ -f \"$HOME/.bashrc\" ]; then" >> "$HOME/.bash_profile"
+        echo "    . \"$HOME/.bashrc\"" >> "$HOME/.bash_profile"
+        echo "fi" >> "$HOME/.bash_profile"
+        print_info "已更新 $HOME/.bash_profile 以加载 .bashrc"
+    fi
 fi
 
 # 清除命令缓存
@@ -146,7 +160,7 @@ echo
 echo -e "${YELLOW}[重要提示]${RESET}"
 echo "您当前使用的 shell 是: ${CYAN}$CURRENT_SHELL${RESET}"
 echo "如果重新登录后命令不可用，请确认:"
-echo "  1. 对于 bash 用户: 确保 ~/.bashrc 或 ~/.bash_profile 被正确加载"
+echo "  1. 对于 bash 用户: 确保 ~/.bash_profile 存在并加载 ~/.bashrc"
 echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含函数定义"
 echo "  3. 对于其他 shell: 请参考对应 shell 的配置文件"
 echo    
