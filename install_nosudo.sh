@@ -20,7 +20,6 @@ print_info() {
 
 # 定义安装目录
 PROJECT_DIR="$HOME/Fmie--primary"
-BIN_DIR="$HOME/bin"
 ALIAS_CMD="gg"  # 快捷命令名称
 
 print_info "开始安装 Fmie--primary 框架..."
@@ -35,11 +34,11 @@ curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
-# 创建快捷命令（使用 alias 而非直接写入 bin）
+# 创建快捷命令（使用 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
 ALIAS_LINE="alias $ALIAS_CMD=\"$PROJECT_DIR/start.sh\""
 
-# 配置环境变量（使用 alias）
+# 配置环境变量
 print_info "配置环境变量..."
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$HOME/.bash_profile" ]; then
