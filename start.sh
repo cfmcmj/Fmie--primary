@@ -84,10 +84,21 @@ systemInfo() {
   echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
   echo "内核版本: $(uname -r)"
   
+  # 内存信息（添加替代方法）
   if command -v free &>/dev/null; then
     echo "可用内存: $(free -h | grep Mem | awk '{print $7}')"
   else
-    echo -e "${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
+    # 尝试使用 /proc/meminfo 作为替代
+    if [ -f "/proc/meminfo" ]; then
+      available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
+      if [ -n "$available" ]; then
+        echo "可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+      else
+        echo -e "${YELLOW}[提示]${RESET} 无法获取内存信息"
+      fi
+    else
+      echo -e "${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
+    fi
   fi
   
   echo "磁盘空间: $(df -h / | awk 'NR==2 {print $4}')"

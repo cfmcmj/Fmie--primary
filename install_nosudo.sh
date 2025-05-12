@@ -32,13 +32,32 @@ mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 print_info "从 GitHub 下载最新框架代码..."
 curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
 
-# 处理 Windows 换行符问题（改进版）
+# 处理 Windows 换行符问题（增强版）
 print_info "确保脚本使用 Unix 格式换行符..."
-if ! sed -i 's/\r$//' "$PROJECT_DIR/start.sh"; then
-    print_info "警告: 转换换行符失败，尝试替代方法..."
-    tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"
-    mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
-    chmod +x "$PROJECT_DIR/start.sh"
+SED_SUCCESS=0
+
+# 尝试使用最常见的 sed 语法
+if sed -i 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    SED_SUCCESS=1
+# 尝试 macOS/BSD 版本的 sed
+elif sed -i '' 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    SED_SUCCESS=1
+# 尝试使用双引号版本的 sed 命令
+elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    SED_SUCCESS=1
+fi
+
+if [ $SED_SUCCESS -eq 0 ]; then
+    print_info "警告: sed 命令失败，尝试替代方法..."
+    # 使用 tr 命令替代
+    if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
+        mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+        chmod +x "$PROJECT_DIR/start.sh"
+    else
+        handle_error "无法修复换行符问题，请检查文件权限"
+    fi
+else
+    print_info "成功转换换行符"
 fi
 
 # 设置执行权限
