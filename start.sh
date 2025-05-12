@@ -1,35 +1,8 @@
 #!/bin/bash
 # Fmie--primary 框架主入口脚本
 
-# 检查依赖（改进版）
-check_dependencies() {
-    MISSING=0
-    for cmd in clear hostname cat df uname; do
-        if ! command -v "$cmd" &>/dev/null; then
-            echo -e "${RED}[警告]${RESET} 缺少必要的命令: $cmd" >&2
-            MISSING=1
-        fi
-    done
-    
-    # 检查操作系统类型
-    OS=$(uname)
-    
-    # 非关键命令
-    if [ "$OS" = "FreeBSD" ]; then
-        if ! command -v vmstat &>/dev/null; then
-            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: vmstat，系统内存信息可能受限" >&2
-        fi
-    else
-        if ! command -v free &>/dev/null; then
-            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: free，系统内存信息可能受限" >&2
-        fi
-    fi
-    
-    if [ $MISSING -eq 1 ]; then
-        echo -e "${RED}[错误]${RESET} 缺少必要的命令，无法继续执行" >&2
-        exit 1
-    fi
-}
+# 捕获中断信号（Ctrl+C）
+trap 'echo -e "\n${RED}[信息]${RESET} 已中断操作"; exit 1' SIGINT SIGTERM
 
 # 颜色定义
 RED='\033[0;91m'
@@ -305,17 +278,14 @@ mainMenu() {
       3) configSettings ;;
       4) toolkit ;;
       5) updateFramework ;;
-      0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; exit 0 ;;
+      0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; return 0 ;;
       *) echo -e "${RED}无效选择，请重新输入!${RESET}" ;;
     esac
-    sleep 1  # 短暂延迟
+    sleep 0.5  # 短暂延迟，避免刷屏
   done
 }
 
 # 脚本入口
-check_dependencies
-
-# 处理命令行参数
 case "$1" in
   --help|-h)
     showHelp
