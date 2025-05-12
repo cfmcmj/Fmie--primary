@@ -63,9 +63,9 @@ fi
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
-# 创建快捷命令（使用 alias）
+# 创建快捷命令（使用函数替代 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
-ALIAS_LINE="alias $ALIAS_CMD=\"$PROJECT_DIR/start.sh\""
+FUNCTION_LINE="$ALIAS_CMD() { $PROJECT_DIR/start.sh \"\$@\"; }"
 
 # 配置环境变量（增强版）
 print_info "配置环境变量..."
@@ -75,11 +75,19 @@ ENV_FILE=""
 # 查找当前用户使用的 shell 对应的配置文件
 for file in "${ENV_FILES[@]}"; do
     if [ -f "$file" ]; then
-        if ! grep -q "$ALIAS_LINE" "$file"; then
-            echo "$ALIAS_LINE" >> "$file"
-            print_info "已将 '$ALIAS_LINE' 添加到 $file"
+        # 移除旧的 alias 定义
+        if grep -q "alias $ALIAS_CMD=" "$file"; then
+            sed -i "/alias $ALIAS_CMD=/d" "$file"
+            print_info "已从 $file 中移除旧的 alias 定义"
+        fi
+        
+        # 添加函数定义
+        if ! grep -q "$FUNCTION_LINE" "$file"; then
+            echo -e "\n# Fmie--primary framework" >> "$file"
+            echo "$FUNCTION_LINE" >> "$file"
+            print_info "已将函数定义添加到 $file"
         else
-            print_info "alias 已在 $file 中配置，跳过此步骤"
+            print_info "函数已在 $file 中配置，跳过此步骤"
         fi
         ENV_FILE="$file"
         break
@@ -88,9 +96,10 @@ done
 
 # 如果未找到任何文件，则默认使用 .bashrc
 if [ -z "$ENV_FILE" ]; then
-    echo "$ALIAS_LINE" >> "$HOME/.bashrc"
+    echo -e "\n# Fmie--primary framework" >> "$HOME/.bashrc"
+    echo "$FUNCTION_LINE" >> "$HOME/.bashrc"
     ENV_FILE="$HOME/.bashrc"
-    print_info "已将 '$ALIAS_LINE' 添加到 $HOME/.bashrc"
+    print_info "已将函数定义添加到 $HOME/.bashrc"
 fi
 
 # 清除命令缓存
@@ -100,22 +109,12 @@ hash -d $ALIAS_CMD 2>/dev/null
 # 立即生效环境变量
 print_info "尝试立即加载环境变量..."
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
-    # 先备份当前环境，避免污染当前 shell
-    TEMP_ENV=$(mktemp)
-    env > "$TEMP_ENV"
-    
     # 在子 shell 中加载并验证
     if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
         print_info "环境变量已成功加载！"
     else
         print_info "警告: 环境变量未能立即生效。这可能不影响后续使用。"
     fi
-    
-    # 恢复环境
-    while read -r line; do
-        export "$line"
-    done < "$TEMP_ENV"
-    rm -f "$TEMP_ENV"
 fi
 
 # 验证安装结果
@@ -148,6 +147,6 @@ echo -e "${YELLOW}[重要提示]${RESET}"
 echo "您当前使用的 shell 是: ${CYAN}$CURRENT_SHELL${RESET}"
 echo "如果重新登录后命令不可用，请确认:"
 echo "  1. 对于 bash 用户: 确保 ~/.bashrc 或 ~/.bash_profile 被正确加载"
-echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含别名定义"
+echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含函数定义"
 echo "  3. 对于其他 shell: 请参考对应 shell 的配置文件"
 echo    
