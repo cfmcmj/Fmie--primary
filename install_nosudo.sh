@@ -45,9 +45,9 @@ $PROJECT_DIR/start.sh "\$@"
 EOF
 chmod +x "$BIN_DIR/gg" || handle_error "无法设置快捷命令权限"
 
-# 配置环境变量
+# 配置环境变量（改进版）
 print_info "配置环境变量，使 'gg' 命令永久可用..."
-if ! grep -q "$BIN_DIR" ~/.bashrc; then
+if ! /bin/bash -c "grep -q '$BIN_DIR' ~/.bashrc"; then
     echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.bashrc
     echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.profile
     print_info "已将 'export PATH=\"$BIN_DIR:\$PATH\"' 添加到 ~/.bashrc 和 ~/.profile"
