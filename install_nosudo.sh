@@ -22,6 +22,7 @@ print_info() {
 PROJECT_DIR="$HOME/Fmie--primary"
 ALIAS_CMD="gg"  # 快捷命令名称
 
+# 开始安装
 print_info "开始安装 Fmie--primary 框架..."
 
 # 创建项目目录
