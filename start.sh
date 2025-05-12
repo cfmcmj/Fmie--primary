@@ -1,14 +1,27 @@
 #!/bin/bash
 # Fmie--primary 框架主入口脚本
 
-# 检查依赖
+# 检查依赖（改进版）
 check_dependencies() {
-    for cmd in clear hostname cat free df uname; do
+    MISSING=0
+    for cmd in clear hostname cat df uname; do
         if ! command -v "$cmd" &>/dev/null; then
-            echo -e "${RED}[错误]${RESET} 缺少必要的命令: $cmd" >&2
-            exit 1
+            echo -e "${RED}[警告]${RESET} 缺少必要的命令: $cmd" >&2
+            MISSING=1
         fi
     done
+    
+    # 非关键命令
+    for cmd in free; do
+        if ! command -v "$cmd" &>/dev/null; then
+            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: $cmd，某些功能可能受限" >&2
+        fi
+    done
+    
+    if [ $MISSING -eq 1 ]; then
+        echo -e "${RED}[错误]${RESET} 缺少必要的命令，无法继续执行" >&2
+        exit 1
+    fi
 }
 
 # 颜色定义
@@ -44,13 +57,19 @@ showBanner() {
 EOF
 }
 
-# 系统信息
+# 系统信息（改进版）
 systemInfo() {
   echo -e "${CYAN}系统信息:${RESET}"
   echo "主机名: $(hostname)"
   echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
   echo "内核版本: $(uname -r)"
-  echo "可用内存: $(free -h | grep Mem | awk '{print $7}')"
+  
+  if command -v free &>/dev/null; then
+    echo "可用内存: $(free -h | grep Mem | awk '{print $7}')"
+  else
+    echo -e "${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
+  fi
+  
   echo "磁盘空间: $(df -h / | awk 'NR==2 {print $4}')"
   read -p "按 Enter 继续..."
 }
