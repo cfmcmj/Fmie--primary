@@ -1,29 +1,32 @@
 #!/bin/bash
-# Fmie--primary 框架主入口脚本（FreeBSD 兼容）
+# Fmie--primary 框架主入口脚本
 
-# 日志文件
-PROJECT_DIR="$HOME/Fmie--primary"
-LOG_FILE="$PROJECT_DIR/fmie.log"
-
-# 检查依赖
+# 检查依赖（改进版）
 check_dependencies() {
     MISSING=0
-    for cmd in clear hostname cat df uname awk grep; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            echo -e "${RED}[警告]${RESET} 缺少必要命令: $cmd" >&2
-            echo "[$(date)] WARN: Missing command $cmd" >> "$LOG_FILE" 2>/dev/null
+    for cmd in clear hostname cat df uname; do
+        if ! command -v "$cmd" &>/dev/null; then
+            echo -e "${RED}[警告]${RESET} 缺少必要的命令: $cmd" >&2
             MISSING=1
         fi
     done
-    for cmd in bc; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: $cmd，部分功能可能受限" >&2
-            echo "[$(date)] INFO: Optional command $cmd missing" >> "$LOG_FILE" 2>/dev/null
+    
+    # 检查操作系统类型
+    OS=$(uname)
+    
+    # 非关键命令
+    if [ "$OS" = "FreeBSD" ]; then
+        if ! command -v vmstat &>/dev/null; then
+            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: vmstat，系统内存信息可能受限" >&2
         fi
-    done
+    else
+        if ! command -v free &>/dev/null; then
+            echo -e "${YELLOW}[提示]${RESET} 缺少可选命令: free，系统内存信息可能受限" >&2
+        fi
+    fi
+    
     if [ $MISSING -eq 1 ]; then
-        echo -e "${RED}[错误]${RESET} 缺少必要命令，无法继续执行" >&2
-        echo "[$(date)] ERROR: Missing required commands" >> "$LOG_FILE" 2>/dev/null
+        echo -e "${RED}[错误]${RESET} 缺少必要的命令，无法继续执行" >&2
         exit 1
     fi
 }
@@ -38,183 +41,242 @@ CYAN='\033[0;96m'
 RESET='\033[0m'
 
 # 版本信息
-VERSION="v1.0.1"
+VERSION="v1.0.0"
 
-# 显示横幅
+# 显示横幅（改进版）
 showBanner() {
-    clear
-    echo -e "$(cat << EOF
-${CYAN}╔══════════════════════════════════════════════════╗
-${CYAN}║${RESET}                                              ${CYAN}║
-${CYAN}║${RESET}    ${RED}_____          ${GREEN}_                             ${BLUE}_      ${RESET}    ${CYAN}║
-${CYAN}║${RESET}   ${RED}|  ___| __ ___ ${GREEN}(_) ___             ${BLUE}_ __  _ __(${BLUE}_)${YELLOW}_ __ ___   ${MAGENTA}__ _ ${RESET}    ${CYAN}║
-${CYAN}║${RESET}   ${RED}| |_ | '_ \` _ \ ${GREEN}| |/ _ \_____ ${BLUE}_____| '_ \| '__|${YELLOW}| '_ \` _ \ ${MAGENTA}/ _\` |${RESET}    ${CYAN}║
-${CYAN}║${RESET}   ${RED}|  _|| | | | | | ${GREEN}| |  __/_____|${BLUE}_____| |_) | |  |${YELLOW}| | | | | | ${MAGENTA}| (_| |${RESET}    ${CYAN}║
-${CYAN}║${RESET}   ${RED}|_|  |_| |_| |_|${GREEN}_|\___|           ${BLUE}| .__/|_|  |${YELLOW}|_| |_| |_| ${MAGENTA}\__,_|${RESET}    ${CYAN}║
-${CYAN}║${RESET}                                  ${BLUE}|_|                                ${MAGENTA}|___/${RESET}    ${CYAN}║
-${CYAN}║${RESET}                                              ${CYAN}║
-${CYAN}║${RESET}       ${MAGENTA}项目名称: Fmie-pry ${VERSION}${RESET}                     ${CYAN}║
-${CYAN}║${RESET}       ${GREEN}一个全新的自动化部署框架${RESET}                     ${CYAN}║
-${CYAN}║${RESET}                                              ${CYAN}║
-${CYAN}╚══════════════════════════════════════════════════╝
-${RESET}
+  clear
+  echo -e "$(cat << EOF
+  ${CYAN}╔══════════════════════════════════════════════════╗
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}║${RESET}    ${RED}_____          ${GREEN}_                             ${BLUE}_      ${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}|  ___| __ ___ ${GREEN}(_) ___             ${BLUE}_ __  _ __(${BLUE}_)${YELLOW}_ __ ___   ${MAGENTA}__ _ ${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}| |_ | '_ \` _ \ ${GREEN}| |/ _ \_____ ${BLUE}_____| '_ \| '__|${YELLOW}| '_ \` _ \ ${MAGENTA}/ _\` |${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}|  _|| | | | | | ${GREEN}| |  __/_____|${BLUE}_____| |_) | |  |${YELLOW}| | | | | | ${MAGENTA}| (_| |${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}   ${RED}|_|  |_| |_| |_|${GREEN}_|\___|           ${BLUE}| .__/|_|  |${YELLOW}|_| |_| |_| ${MAGENTA}\__,_|${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}                                  ${BLUE}|_|                                ${MAGENTA}|___/${RESET}    ${CYAN}║
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}║${RESET}       ${MAGENTA}项目名称: Fmie-pry ${VERSION}${RESET}                     ${CYAN}║
+  ${CYAN}║${RESET}       ${GREEN}一个全新的自动化部署框架${RESET}                     ${CYAN}║
+  ${CYAN}║${RESET}                                              ${CYAN}║
+  ${CYAN}╚══════════════════════════════════════════════════╝
+  ${RESET}
 EOF
 )"
-    echo -e "${CYAN}使用方法:${RESET} gg [选项]"
-    echo -e "${CYAN}选项:${RESET}"
-    echo -e "  --help\t显示帮助信息"
-    echo -e "  --version\t显示版本信息"
-    echo -e "  --test\t测试脚本功能"
-    echo ""
+  echo -e "${CYAN}使用方法:${RESET} gg [选项]"
+  echo -e "${CYAN}选项:${RESET}"
+  echo -e "  --help\t显示此帮助信息"
+  echo -e "  --version\t显示版本信息"
+  echo -e "  --test\t测试脚本功能"
+  echo ""
 }
 
 # 显示帮助信息
 showHelp() {
-    showBanner
-    echo -e "${CYAN}Fmie--primary 框架管理工具${RESET}"
-    echo ""
-    echo -e "${CYAN}主命令:${RESET}"
-    echo -e "  gg\t\t启动框架菜单"
-    echo -e "  gg --help\t显示帮助信息"
-    echo -e "  gg --version\t显示版本信息"
-    echo -e "  gg --test\t测试脚本功能"
-    echo ""
+  showBanner
+  echo -e "${CYAN}Fmie--primary 框架管理工具${RESET}"
+  echo ""
+  echo -e "${CYAN}主命令:${RESET}"
+  echo -e "  gg\t\t启动框架菜单"
+  echo -e "  gg --help\t显示此帮助信息"
+  echo -e "  gg --version\t显示版本信息"
+  echo -e "  gg --test\t测试脚本功能"
+  echo ""
+}
+
+# 获取 FreeBSD 内存信息
+get_freebsd_memory_info() {
+    # 使用 vmstat 获取内存信息
+    if command -v vmstat &>/dev/null; then
+        # 解析 vmstat 输出
+        vmstat_output=$(vmstat -s)
+        total_mem=$(echo "$vmstat_output" | grep "total memory" | awk '{print $1}')
+        active_mem=$(echo "$vmstat_output" | grep "active memory" | awk '{print $1}')
+        free_mem=$(echo "$vmstat_output" | grep "free memory" | awk '{print $1}')
+        
+        # 转换为 MB
+        total_mem_mb=$((total_mem / 1024 / 1024))
+        active_mem_mb=$((active_mem / 1024 / 1024))
+        free_mem_mb=$((free_mem / 1024 / 1024))
+        
+        # 计算百分比
+        if [ $total_mem -gt 0 ]; then
+            used_percent=$((active_mem * 100 / total_mem))
+        else
+            used_percent=0
+        fi
+        
+        echo "  总内存: ${total_mem_mb} MB"
+        echo "  已用内存: ${active_mem_mb} MB"
+        echo "  空闲内存: ${free_mem_mb} MB"
+        echo "  使用率: ${used_percent}%"
+    elif [ -r "/compat/linux/proc/meminfo" ]; then
+        # 兼容 Linux 子系统的情况
+        total=$(grep "MemTotal:" /compat/linux/proc/meminfo | awk '{print $2}')
+        free=$(grep "MemFree:" /compat/linux/proc/meminfo | awk '{print $2}')
+        available=$(grep "MemAvailable:" /compat/linux/proc/meminfo | awk '{print $2}')
+        
+        if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
+            used=$((total - free))
+            percent=$((used * 100 / total))
+            
+            echo "  总内存: $(echo "scale=2; $total/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
+            echo "  可用内存: $(echo "scale=2; $available/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
+            echo "  使用率: ${percent}%"
+        else
+            echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
+        fi
+    else
+        echo -e "  ${YELLOW}[提示]${RESET} 缺少 'vmstat' 命令，无法显示内存信息"
+    fi
 }
 
 # 系统信息
 systemInfo() {
-    echo -e "${CYAN}系统信息:${RESET}"
-    echo "主机名: $(hostname)"
-    echo "操作系统: $(uname -sr)"
-    echo "内核版本: $(uname -r)"
-    
-    echo -e "${CYAN}内存信息:${RESET}"
-    if sysctl hw.physmem >/dev/null 2>&1; then
-        total_mem=$(sysctl -n hw.physmem)
-        usermem=$(sysctl -n hw.usermem 2>/dev/null || echo $total_mem)
-        used_mem=$((total_mem - usermem))
-        total_mb=$((total_mem / 1024 / 1024))
-        used_mb=$((used_mem / 1024 / 1024))
-        free_mb=$((usermem / 1024 / 1024))
-        percent=$((used_mem * 100 / total_mem))
-        echo "  总内存: ${total_mb} MB"
-        echo "  已用: ${used_mb} MB"
-        echo "  空闲: ${free_mb} MB"
-        echo "  使用率: ${percent}%"
-    else
-        echo -e "  ${YELLOW}[提示]${RESET} 无法获取内存信息"
-    fi
-    
-    echo -e "${CYAN}磁盘空间:${RESET}"
-    if df -h / >/dev/null 2>&1; then
-        echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
-    else
-        echo -e "  ${YELLOW}[提示]${RESET} 无法获取磁盘信息"
-    fi
-}
-
-# 部署 sun-panel（占位实现）
-deploy_sun_panel() {
-    echo -e "${CYAN}部署 sun-panel...${RESET}"
-    SUN_PANEL_URL="https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/sun-panel"
-    SUN_PANEL_DIR="$PROJECT_DIR/sun-panel"
-    mkdir -p "$SUN_PANEL_DIR" || { echo -e "${RED}无法创建目录${RESET}"; return 1; }
-    if command -v fetch >/dev/null 2>&1; then
-        fetch -o "$SUN_PANEL_DIR/sun-panel" "$SUN_PANEL_URL" 2>>"$LOG_FILE" || { echo -e "${RED}下载失败${RESET}"; return 1; }
-    elif command -v curl >/dev/null 2>&1; then
-        curl -Ls "$SUN_PANEL_URL" -o "$SUN_PANEL_DIR/sun-panel" 2>>"$LOG_FILE" || { echo -e "${RED}下载失败${RESET}"; return 1; }
-    else
-        echo -e "${RED}需要 fetch 或 curl${RESET}"
-        return 1
-    fi
-    chmod +x "$SUN_PANEL_DIR/sun-panel" 2>>"$LOG_FILE" || { echo -e "${RED}无法设置执行权限${RESET}"; return 1; }
-    echo "sun-panel 已部署到 $SUN_PANEL_DIR"
-    echo "运行: $SUN_PANEL_DIR/sun-panel"
+  echo -e "${CYAN}系统信息:${RESET}"
+  echo "主机名: $(hostname)"
+  
+  # 获取操作系统信息
+  OS=$(uname)
+  case $OS in
+    Linux)
+      echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
+      ;;
+    FreeBSD)
+      echo "操作系统: FreeBSD $(uname -r)"
+      ;;
+    *)
+      echo "操作系统: $OS $(uname -r)"
+      ;;
+  esac
+  
+  echo "内核版本: $(uname -r)"
+  
+  # 内存信息（改进版，支持 FreeBSD）
+  echo -e "${CYAN}内存信息:${RESET}"
+  if [ "$OS" = "FreeBSD" ]; then
+      get_freebsd_memory_info
+  else
+      if command -v free &>/dev/null; then
+          echo "  $(free -h | grep Mem | awk '{printf "总内存: %s, 已用: %s, 空闲: %s, 使用率: %s\n", $2, $3, $4, $5}')"
+      else
+          if [ -f "/proc/meminfo" ]; then
+              total=$(grep "MemTotal:" /proc/meminfo | awk '{print $2}')
+              free=$(grep "MemFree:" /proc/meminfo | awk '{print $2}')
+              available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
+              
+              if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
+                  used=$((total - free))
+                  percent=$((used * 100 / total))
+                  
+                  echo "  总内存: $(echo "scale=2; $total/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+                  echo "  可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
+                  echo "  使用率: ${percent}%"
+              else
+                  echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
+              fi
+          else
+              echo -e "  ${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
+          fi
+      fi
+  fi
+  
+  # 磁盘空间（改进版，支持 FreeBSD）
+  echo -e "${CYAN}磁盘空间:${RESET}"
+  if [ "$OS" = "FreeBSD" ]; then
+      echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
+  else
+      echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
+  fi
+  read -p "按 Enter 继续..."
 }
 
 # 项目管理
 projectManager() {
-    echo -e "${CYAN}项目管理:${RESET}"
-    echo "1) 部署 sun-panel"
-    echo "0) 返回主菜单"
-    read -p "请选择: " choice
-    if ! echo "$choice" | grep -q '^[0-1]$'; then
-        echo -e "${RED}无效选择，请输入 0-1${RESET}"
-        return 1
-    fi
-    case $choice in
-        1) deploy_sun_panel ;;
-        0) return ;;
-    esac
+  echo -e "${CYAN}项目管理:${RESET}"
+  echo "1) 创建新项目"
+  echo "2) 部署现有项目"
+  echo "3) 更新项目"
+  echo "4) 删除项目"
+  echo "0) 返回主菜单"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "创建新项目..." ;;
+    2) echo "部署现有项目..." ;;
+    3) echo "更新项目..." ;;
+    4) echo "删除项目..." ;;
+    0) return ;;
+    *) echo "无效选择!" ;;
+  esac
+  read -p "按 Enter 继续..."
 }
 
 # 配置设置
 configSettings() {
-    echo -e "${CYAN}配置设置:${RESET}"
-    echo "1) 设置环境变量"
-    echo "0) 返回主菜单"
-    read -p "请选择: " choice
-    if ! echo "$choice" | grep -q '^[0-1]$'; then
-        echo -e "${RED}无效选择，请输入 0-1${RESET}"
-        return 1
-    fi
-    case $choice in
-        1) echo "请输入变量名和值 (如 PATH=$HOME/bin):"
-           read -r env_var
-           echo "export $env_var" >> "$HOME/.profile" 2>>"$LOG_FILE"
-           echo "已添加 $env_var 到 $HOME/.profile"
-           ;;
-        0) return ;;
-    esac
+  echo -e "${CYAN}配置设置:${RESET}"
+  echo "1) 修改系统配置"
+  echo "2) 管理用户账户"
+  echo "3) 设置环境变量"
+  echo "0) 返回主菜单"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "修改系统配置..." ;;
+    2) echo "管理用户账户..." ;;
+    3) echo "设置环境变量..." ;;
+    0) return ;;
+    *) echo "无效选择!" ;;
+  esac
+  read -p "按 Enter 继续..."
 }
 
 # 工具集
 toolkit() {
-    echo -e "${CYAN}工具集:${RESET}"
-    echo "1) 文件管理器 (ls -l)"
-    echo "2) 日志查看器 (tail)"
-    echo "0) 返回主菜单"
-    read -p "请选择: " choice
-    if ! echo "$choice" | grep -q '^[0-2]$'; then
-        echo -e "${RED}无效选择，请输入 0-2${RESET}"
-        return 1
-    fi
-    case $choice in
-        1) ls -l "$HOME" ;;
-        2) tail -n 10 "$LOG_FILE" 2>/dev/null || echo "无日志文件" ;;
-        0) return ;;
-    esac
+  echo -e "${CYAN}工具集:${RESET}"
+  echo "1) 文件管理器"
+  echo "2) 日志查看器"
+  echo "3) 系统监控"
+  echo "4) 网络工具"
+  echo "0) 返回主菜单"
+  
+  read -p "请选择: " choice
+  case $choice in
+    1) echo "文件管理器..." ;;
+    2) echo "日志查看器..." ;;
+    3) echo "系统监控..." ;;
+    4) echo "网络工具..." ;;
+    0) return ;;
+    *) echo "无效选择!" ;;
+  esac
+  read -p "按 Enter 继续..."
 }
 
 # 更新框架
 updateFramework() {
-    echo -e "${CYAN}检查更新...${RESET}"
-    REMOTE_VERSION=$(curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/VERSION 2>/dev/null || fetch -o - https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/VERSION 2>/dev/null)
-    if [ -n "$REMOTE_VERSION" ] && [ "$REMOTE_VERSION" != "$VERSION" ]; then
-        echo "发现新版本 $REMOTE_VERSION，当前版本 $VERSION"
-        read -p "是否更新? (y/n): " confirm
-        if [ "$confirm" = "y" ]; then
-            if command -v fetch >/dev/null 2>&1; then
-                fetch -o "$PROJECT_DIR/start.sh.new" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh 2>>"$LOG_FILE" || { echo -e "${RED}下载失败${RESET}"; return 1; }
-            elif command -v curl >/dev/null 2>&1; then
-                curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh.new" 2>>"$LOG_FILE" || { echo -e "${RED}下载失败${RESET}"; return 1; }
-            fi
-            mv "$PROJECT_DIR/start.sh.new" "$PROJECT_DIR/start.sh" 2>>"$LOG_FILE"
-            chmod +x "$PROJECT_DIR/start.sh" 2>>"$LOG_FILE"
-            echo "更新完成！"
-        else
-            echo "更新取消"
-        fi
-    else
-        echo "当前已是最新版本 $VERSION"
-    fi
+  echo -e "${CYAN}更新框架:${RESET}"
+  echo "正在检查更新..."
+  
+  # 模拟更新检查
+  sleep 2
+  echo "发现新版本! 是否更新? (y/n)"
+  read -p "选择: " confirm
+  
+  if [ "$confirm" = "y" ]; then
+    echo "正在更新框架..."
+    # 模拟更新过程
+    sleep 3
+    echo "更新完成!"
+  else
+    echo "更新已取消。"
+  fi
+  read -p "按 Enter 继续..."
 }
 
 # 测试脚本
 testScript() {
-    if ! type showBanner >/dev/null 2>&1; then
+    if ! type showBanner &>/dev/null; then
         echo -e "${RED}[错误]${RESET} showBanner 函数未定义" >&2
-        echo "[$(date)] ERROR: showBanner undefined" >> "$LOG_FILE" 2>/dev/null
         exit 1
     fi
     showBanner
@@ -224,42 +286,50 @@ testScript() {
 
 # 主菜单
 mainMenu() {
-    while true; do
-        showBanner
-        echo "请选择一个选项:"
-        echo "---------------------"
-        echo "1) 系统信息"
-        echo "2) 项目管理"
-        echo "3) 配置设置"
-        echo "4) 工具集"
-        echo "5) 更新框架"
-        echo "0) 退出"
-        echo "---------------------"
-        read -p "请选择: " choice
-        if ! echo "$choice" | grep -q '^[0-5]$'; then
-            echo -e "${RED}无效选择，请输入 0-5${RESET}"
-            continue
-        fi
-        case $choice in
-            1) systemInfo ;;
-            2) projectManager ;;
-            3) configSettings ;;
-            4) toolkit ;;
-            5) updateFramework ;;
-            0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; exit 0 ;;
-        esac
-    done
+  while true; do
+    showBanner
+    echo "请选择一个选项:"
+    echo "---------------------"
+    echo "1) 系统信息"
+    echo "2) 项目管理"
+    echo "3) 配置设置"
+    echo "4) 工具集"
+    echo "5) 更新框架"
+    echo "0) 退出"
+    echo "---------------------"
+    
+    read -p "请选择: " choice
+    case $choice in
+      1) systemInfo ;;
+      2) projectManager ;;
+      3) configSettings ;;
+      4) toolkit ;;
+      5) updateFramework ;;
+      0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; exit 0 ;;
+      *) echo -e "${RED}无效选择，请重新输入!${RESET}" ;;
+    esac
+    sleep 1  # 短暂延迟
+  done
 }
-
-# 捕获 Ctrl+C
-trap 'echo -e "\n${GREEN}退出框架...${RESET}"; exit 0' INT
 
 # 脚本入口
 check_dependencies
 
+# 处理命令行参数
 case "$1" in
-    --help|-h) showHelp; exit 0 ;;
-    --version|-v) echo "Fmie-pry 框架版本 $VERSION"; exit 0 ;;
-    --test) testScript ;;
-    *) mainMenu ;;
-esac
+  --help|-h)
+    showHelp
+    exit 0
+    ;;
+  --version|-v)
+    echo "Fmie-pry 框架版本 $VERSION"
+    exit 0
+    ;;
+  --test)
+    testScript
+    ;;
+  *)
+    # 如果没有参数或参数无效，显示主菜单
+    mainMenu
+    ;;
+esac    
