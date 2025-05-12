@@ -257,8 +257,11 @@ testScript() {
     exit 0
 }
 
-# 主菜单
+# 主菜单（改进版，添加输入超时处理）
 mainMenu() {
+  # 设置 read 超时（5分钟）
+  TMOUT=300
+  
   while true; do
     showBanner
     echo "请选择一个选项:"
@@ -271,7 +274,13 @@ mainMenu() {
     echo "0) 退出"
     echo "---------------------"
     
-    read -p "请选择: " choice
+    # 带超时的输入
+    read -t $TMOUT -p "请选择: " choice
+    if [ $? -eq 142 ]; then
+        echo -e "\n${YELLOW}[信息]${RESET} 操作超时，返回主菜单..."
+        continue
+    fi
+    
     case $choice in
       1) systemInfo ;;
       2) projectManager ;;
