@@ -330,14 +330,15 @@ else
     echo
 fi
 
+# 为当前会话临时添加路径
+export PATH="$HOME/bin:$PATH"
+
 # 提供启动选项
 echo
 echo -e "${GREEN}安装已完成！${RESET}"
 read -p "是否立即启动 Fmie--primary 框架？(y/N): " start_choice
 if [ "$start_choice" = "y" ]; then
     print_info "正在启动 Fmie--primary 框架..."
-    # 确保环境变量已更新
-    source "$ENV_FILE"
     # 启动框架
     $ALIAS_CMD
 else
