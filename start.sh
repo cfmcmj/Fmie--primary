@@ -19,37 +19,36 @@ showBanner() {
     echo -e "$(cat << EOF
 ${GREEN}<----------------------------------------------------------------->
 
-    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  n██    ██     
+    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
     ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██   ██  ██      
     ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████     ████       
     ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██          ██        
-    ${RED}██      ██      ██ ██ ███████     ${BLUE}██          ██        
-    ${RED}                                  ${BLUE}                   
+    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
+    ${RED}                                  ${BLUE}                  
     ${RED}     当前版本号:${GREEN}v$VERSION    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架
 ${GREEN}<----------------------------------------------------------------->                                                       
 EOF
 )"
 }
 
-# 系统信息 - 增强版
+# 系统信息
 systemInfo() {
     showBanner
     echo -e "${CYAN}系统信息:${RESET}"
-    
     # 主机信息
     echo -e "${CYAN}主机信息:${RESET}"
     echo -e "  主机名: $(hostname)"
     echo -e "  完整域名: $(hostname -f 2>/dev/null || echo "N/A")"
     echo -e "  IP 地址: $(hostname -I | awk '{print $1}')"
-    
+
     # 操作系统信息
     echo -e "\n${CYAN}操作系统:${RESET}"
     if [ -f /etc/os-release ]; then
-        . /etc/os-release
+       . /etc/os-release
         echo -e "  发行版: $PRETTY_NAME"
         echo -e "  版本 ID: $VERSION_ID"
     elif [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
+       . /etc/lsb-release
         echo -e "  发行版: $DISTRIB_DESCRIPTION"
     elif [ -f /etc/debian_version ]; then
         echo -e "  发行版: Debian $(cat /etc/debian_version)"
@@ -60,47 +59,47 @@ systemInfo() {
         VER=$(uname -r)
         echo -e "  系统: $OS $VER"
     fi
-    
+
     # 内核信息
     echo -e "\n${CYAN}内核信息:${RESET}"
     echo -e "  内核版本: $(uname -r)"
     echo -e "  架构: $(uname -m)"
     echo -e "  编译时间: $(uname -v)"
-    
+
     # CPU 信息
     echo -e "\n${CYAN}CPU 信息:${RESET}"
     if [ -f /proc/cpuinfo ]; then
-        CPU_MODEL=$(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
+        CPU_MODEL=$(grep'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
         CPU_CORES=$(grep 'processor' /proc/cpuinfo | wc -l)
-        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
+        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
         echo -e "  型号: $CPU_MODEL"
         echo -e "  核心数: $CPU_CORES"
         echo -e "  频率: $CPU_FREQ MHz"
     else
         echo -e "  CPU 信息: $(sysctl -n hw.model 2>/dev/null || echo "N/A")"
     fi
-    
+
     # 内存信息
     echo -e "\n${CYAN}内存信息:${RESET}"
     if command -v free &>/dev/null; then
         mem_info=$(free -h | awk 'NR==2 {printf "总内存: %s, 已用: %s, 空闲: %s, 使用率: %s\n", $2, $3, $4, $5}')
         echo -e "  $mem_info"
-        
+
         # 交换空间
         swap_info=$(free -h | awk 'NR==3 {printf "交换空间: %s, 已用: %s, 空闲: %s, 使用率: %s\n", $2, $3, $4, $5}')
         echo -e "  $swap_info"
     else
         echo -e "  ${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示详细内存信息"
     fi
-    
+
     # 磁盘空间
     echo -e "\n${CYAN}磁盘空间:${RESET}"
     echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
-    
+
     # 挂载的文件系统
     echo -e "\n${CYAN}挂载的文件系统:${RESET}"
     df -hT | grep -vE '^Filesystem|tmpfs|udev'
-    
+
     # 网络信息
     echo -e "\n${CYAN}网络信息:${RESET}"
     if command -v ifconfig &>/dev/null; then
@@ -110,15 +109,15 @@ systemInfo() {
     else
         echo -e "  ${YELLOW}[提示]${RESET} 缺少网络工具，无法显示网络信息"
     fi
-    
+
     # 系统运行时间
     echo -e "\n${CYAN}系统运行时间:${RESET}"
-    echo -e "  $(uptime | sed 's/^.*up //; s/, [0-9]* users.*//')"
-    
+    echo -e "  $(uptime | sed's/^.*up //; s/, [0 - 9]* users.*//')"
+
     # 用户信息
     echo -e "\n${CYAN}当前登录用户:${RESET}"
     whoami
-    
+
     read -p "按 Enter 继续..."
 }
 
@@ -126,20 +125,20 @@ systemInfo() {
 checkUpdate() {
     showBanner
     echo -e "${CYAN}检查更新:${RESET}"
-    
+
     # 获取当前版本和最新版本
     CURRENT_VERSION="$VERSION"
-    
+
     # 从 GitHub 获取最新版本信息
     echo -e "${YELLOW}[信息]${RESET} 正在检查最新版本..."
     LATEST_VERSION=$(curl -s https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/VERSION)
-    
+
     if [ -z "$LATEST_VERSION" ]; then
         echo -e "${RED}[错误]${RESET} 无法获取最新版本信息，请检查网络连接。"
         read -p "按 Enter 继续..."
         return
     fi
-    
+
     if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
         echo -e "${GREEN}[成功]${RESET} 您使用的是最新版本 ($CURRENT_VERSION)"
     else
@@ -169,7 +168,7 @@ checkUpdate() {
             fi
         fi
     fi
-    
+
     read -p "按 Enter 继续..."
 }
 
@@ -177,17 +176,17 @@ checkUpdate() {
 runFramework() {
     showBanner
     echo -e "${CYAN}正在运行 Fmie--primary 框架...${RESET}"
-    
+
     # 这里是框架的主要功能代码
     # 由于不清楚具体框架功能，这里仅作为示例
-    
+
     echo -e "${YELLOW}[信息]${RESET} 框架核心已启动..."
     echo -e "${YELLOW}[信息]${RESET} 加载配置文件..."
     echo -e "${YELLOW}[信息]${RESET} 初始化环境..."
-    
+
     # 模拟框架运行
     echo -e "${GREEN}[成功]${RESET} 框架已成功启动！"
-    
+
     # 框架主循环示例
     while true; do
         echo -e "\n${CYAN}Fmie--primary 控制台${RESET}"
@@ -195,9 +194,9 @@ runFramework() {
         echo -e "2) 查看日志"
         echo -e "3) 配置设置"
         echo -e "0) 返回主菜单"
-        
+
         read -p "请选择 [0-3]: " choice
-        
+
         case $choice in
             1)
                 echo -e "${YELLOW}[信息]${RESET} 执行任务..."
@@ -223,6 +222,69 @@ runFramework() {
     done
 }
 
+# 安装 sun-panel
+installSunPanel() {
+    showBanner
+    echo -e "${CYAN}开始安装 sun-panel...${RESET}"
+    local sun_panel_dir="$HOME/Fmie--primary/sun-panel"
+    mkdir -p "$sun_panel_dir" || {
+        echo -e "${RED}[错误]${RESET} 无法创建 sun-panel 安装目录"
+        read -p "按 Enter 继续..."
+        return
+    }
+    cd "$sun_panel_dir" || {
+        echo -e "${RED}[错误]${RESET} 无法进入 sun-panel 安装目录"
+        read -p "按 Enter 继续..."
+        return
+    }
+    local repo_url="https://github.com/your-repo/sun-panel.git"
+    if command -v git &>/dev/null; then
+        git clone "$repo_url" . || {
+            echo -e "${RED}[错误]${RESET} 克隆 sun-panel 代码失败，请检查网络连接和仓库地址"
+            read -p "按 Enter 继续..."
+            return
+        }
+    } else {
+        echo -e "${RED}[错误]${RESET} 未找到 git 命令，无法克隆 sun-panel 代码"
+        read -p "按 Enter 继续..."
+        return
+    }
+    find scripts -type f -name "*.sh" -exec chmod +x {} \; || {
+        echo -e "${RED}[错误]${RESET} 设置脚本权限失败"
+        read -p "按 Enter 继续..."
+        return
+    }
+    echo -e "${GREEN}[成功]${RESET} sun-panel 安装完成！"
+    read -p "按 Enter 继续..."
+}
+
+# 运行 sun-panel
+runSunPanel() {
+    showBanner
+    echo -e "${CYAN}正在启动 sun-panel...${RESET}"
+    local sun_panel_dir="$HOME/Fmie--primary/sun-panel"
+    if [ -d "$sun_panel_dir" ]; then
+        cd "$sun_panel_dir" || {
+            echo -e "${RED}[错误]${RESET} 无法进入 sun-panel 目录"
+            read -p "按 Enter 继续..."
+            return
+        }
+        if [ -x scripts/main.sh ]; then
+            bash scripts/main.sh
+        } else {
+            echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
+        }
+        cd "$HOME/Fmie--primary" || {
+            echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
+            read -p "按 Enter 继续..."
+            return
+        }
+    } else {
+        echo -e "${RED}[错误]${RESET} sun-panel 目录不存在，请先安装"
+    }
+    read -p "按 Enter 继续..."
+}
+
 # 框架帮助
 showHelp() {
     showBanner
@@ -231,7 +293,9 @@ showHelp() {
     echo -e "  1. 系统信息查看 - 显示详细的系统信息"
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
     echo -e "  3. 框架运行 - 启动框架主程序"
-    echo -e "  4. 帮助信息 - 显示此帮助菜单\n"
+    echo -e "  4. 安装 sun-panel - 安装 sun-panel"
+    echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
+    echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
     echo -e "${YELLOW}[提示]${RESET} 使用数字键选择相应的功能。"
     read -p "按 Enter 继续..."
 }
@@ -244,11 +308,13 @@ mainMenu() {
         echo -e "1) 查看系统信息"
         echo -e "2) 检查更新"
         echo -e "3) 运行框架"
-        echo -e "4) 帮助"
+        echo -e "4) 安装 sun-panel"
+        echo -e "5) 运行 sun-panel"
+        echo -e "6) 帮助"
         echo -e "0) 退出"
-        
-        read -p "请选择 [0-4]: " choice
-        
+
+        read -p "请选择 [0-6]: " choice
+
         case $choice in
             1)
                 systemInfo
@@ -260,6 +326,12 @@ mainMenu() {
                 runFramework
                 ;;
             4)
+                installSunPanel
+                ;;
+            5)
+                runSunPanel
+                ;;
+            6)
                 showHelp
                 ;;
             0)

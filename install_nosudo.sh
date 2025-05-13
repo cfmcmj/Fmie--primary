@@ -44,19 +44,17 @@ system_init() {
     MISSING_DEPS=""
 
     # 检查 curl/wget
-    if ! command -v curl &>/dev/null; then
-        if ! command -v wget &>/dev/null; then
-            MISSING_DEPS="$MISSING_DEPS curl/wget"
-        fi
+    if! command -v curl &>/dev/null &&! command -v wget &>/dev/null; then
+        MISSING_DEPS="$MISSING_DEPS curl/wget"
     fi
 
     # 检查 sed
-    if ! command -v sed &>/dev/null; then
+    if! command -v sed &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS sed"
     fi
 
     # 检查 grep
-    if ! command -v grep &>/dev/null; then
+    if! command -v grep &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS grep"
     fi
 
@@ -208,32 +206,6 @@ system_init() {
     echo -e "${YELLOW}[提示]${RESET} 建议重新登录或重启终端以确保所有更改生效。"
 }
 
-# 安装 sun-panel 项目
-install_sun_panel() {
-    print_info "开始安装 sun-panel 项目..."
-    # 创建 sun-panel 目录
-    local sun_panel_dir="$HOME/Fmie--primary/sun-panel"
-    mkdir -p "$sun_panel_dir" || handle_error "无法创建 sun-panel 安装目录"
-    cd "$sun_panel_dir" || handle_error "无法进入 sun-panel 安装目录"
-
-    # 下载 sun-panel 代码（假设从 GitHub 下载，根据实际情况修改）
-    local repo_url="https://github.com/your-repo/sun-panel.git"
-    if command -v curl &>/dev/null; then
-        curl -Ls "$repo_url" -o sun-panel.zip || handle_error "下载 sun-panel 代码失败，请检查网络连接"
-        unzip sun-panel.zip && rm sun-panel.zip || handle_error "解压 sun-panel 代码失败"
-    elif command -v wget &>/dev/null; then
-        wget -q -O sun-panel.zip "$repo_url" || handle_error "下载 sun-panel 代码失败，请检查网络连接"
-        unzip sun-panel.zip && rm sun-panel.zip || handle_error "解压 sun-panel 代码失败"
-    else
-        handle_error "未找到 curl 或 wget 命令，无法下载 sun-panel 代码"
-    fi
-
-    # 设置权限
-    find scripts -type f -name "*.sh" -exec chmod +x {} \; || handle_error "设置脚本权限失败"
-
-    print_info "sun-panel 项目安装完成！"
-}
-
 # 定义安装目录
 PROJECT_DIR="$HOME/Fmie--primary"
 ALIAS_CMD="gg"  # 快捷命令名称
@@ -332,7 +304,7 @@ chmod +x "$HOME/bin/$ALIAS_CMD" || handle_error "无法设置快捷命令权限"
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$ENV_FILE" ]; then
     # 检查是否已添加
-    if ! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
+    if! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
         echo '# Fmie--primary framework' >> "$ENV_FILE"
         echo 'export PATH="$HOME/bin:$PATH"' >> "$ENV_FILE"
         print_info "已将 $HOME/bin 添加到环境变量"
@@ -365,14 +337,6 @@ else
     echo
 fi
 
-# 询问是否安装 sun-panel
-read -p "是否安装 sun-panel 项目？(y/N): " install_sun
-if [ "$install_sun" = "y" ]; then
-    install_sun_panel
-else
-    print_info "跳过 sun-panel 项目安装。"
-fi
-
 # 提供启动选项
 echo
 echo -e "${GREEN}安装已完成！${RESET}"
@@ -380,4 +344,4 @@ read -p "是否立即启动 Fmie--primary 框架？(y/N): " start_choice
 if [ "$start_choice" = "y" ]; then
     print_info "正在启动 Fmie--primary 框架..."
     $ALIAS_CMD
-fi    
+fi
