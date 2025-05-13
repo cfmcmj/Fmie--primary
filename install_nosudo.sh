@@ -329,3 +329,17 @@ else
     echo "  3. 执行 ${CYAN}$ALIAS_CMD${RESET} 命令启动框架"
     echo
 fi
+
+# 提供启动选项
+echo
+echo -e "${GREEN}安装已完成！${RESET}"
+read -p "是否立即启动 Fmie--primary 框架？(y/N): " start_choice
+if [ "$start_choice" = "y" ]; then
+    print_info "正在启动 Fmie--primary 框架..."
+    # 确保环境变量已更新
+    source "$ENV_FILE"
+    # 启动框架
+    $ALIAS_CMD
+else
+    echo -e "${YELLOW}[提示]${RESET} 您可以随时通过执行 '$ALIAS_CMD' 命令启动框架。"
+fi
