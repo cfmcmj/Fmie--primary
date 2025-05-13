@@ -69,9 +69,9 @@ systemInfo() {
     # CPU 信息
     echo -e "\n${CYAN}CPU 信息:${RESET}"
     if [ -f /proc/cpuinfo ]; then
-        CPU_MODEL=$(grep'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
+        CPU_MODEL=$(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
         CPU_CORES=$(grep 'processor' /proc/cpuinfo | wc -l)
-        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
+        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
         echo -e "  型号: $CPU_MODEL"
         echo -e "  核心数: $CPU_CORES"
         echo -e "  频率: $CPU_FREQ MHz"
@@ -112,7 +112,7 @@ systemInfo() {
 
     # 系统运行时间
     echo -e "\n${CYAN}系统运行时间:${RESET}"
-    echo -e "  $(uptime | sed's/^.*up //; s/, [0 - 9]* users.*//')"
+    echo -e "  $(uptime | sed 's/^.*up //; s/, [0-9]* users.*//')"
 
     # 用户信息
     echo -e "\n${CYAN}当前登录用户:${RESET}"
@@ -244,7 +244,7 @@ installSunPanel() {
             read -p "按 Enter 继续..."
             return
         }
-    } else {
+    else {
         echo -e "${RED}[错误]${RESET} 未找到 git 命令，无法克隆 sun-panel 代码"
         read -p "按 Enter 继续..."
         return
@@ -271,7 +271,7 @@ runSunPanel() {
         }
         if [ -x scripts/main.sh ]; then
             bash scripts/main.sh
-        } else {
+        else {
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
         }
         cd "$HOME/Fmie--primary" || {
@@ -279,9 +279,9 @@ runSunPanel() {
             read -p "按 Enter 继续..."
             return
         }
-    } else {
+    else {
         echo -e "${RED}[错误]${RESET} sun-panel 目录不存在，请先安装"
-    }
+    fi
     read -p "按 Enter 继续..."
 }
 
@@ -352,4 +352,4 @@ if [ "$1" = "--test" ]; then
 fi
 
 # 启动主菜单
-mainMenu
+mainMenu    
