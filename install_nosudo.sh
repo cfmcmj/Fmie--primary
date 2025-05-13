@@ -19,31 +19,21 @@ print_info() {
 }
 
 # 系统初始化函数 - 彻底清除所有框架痕迹
-# ... 其他函数保持不变 ...
-
-# 定义安装目录
-PROJECT_DIR="$HOME/Fmie--primary"
-ALIAS_CMD="gg"  # 快捷命令名称
-
-# ... 其他代码保持不变 ...
-
-# 开始安装
-print_info "开始安装 Fmie--primary 框架..."
-
-# 创建项目目录
-mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
-
-# 下载 start.sh 脚本
-print_info "从 GitHub 下载最新框架代码..."
-if command -v curl &>/dev/null; then
-    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh -o "$PROJECT_DIR/bin/start.sh" || handle_error "下载失败，请检查网络连接"
-elif command -v wget &>/dev/null; then
-    wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh || handle_error "下载失败，请检查网络连接"
-else
-    handle_error "未找到 curl 或 wget 命令，无法下载框架代码"
-fi
-
-# ... 其他代码保持不变 ...
+system_init() {
+    print_info "开始系统彻底初始化..."
+    
+    # 确认操作
+    echo -e "${RED}[警告]${RESET} 此操作将彻底删除 Fmie--primary 框架的所有痕迹，包括:"
+    echo "  - 框架安装目录"
+    echo "  - 环境变量配置"
+    echo "  - 所有项目文件"
+    echo "  - 所有相关配置"
+    echo -e "${RED}[警告]${RESET} 此操作不可恢复，且需要您确认所有删除操作！"
+    read -p "确定要继续吗？这将无法恢复！(y/N): " confirm
+    if [ "$confirm" != "y" ]; then
+        echo -e "${YELLOW}[信息]${RESET} 系统初始化已取消"
+        exit 0
+    fi
     
     # 创建必要的目录（保留，不删除）
     mkdir -p "$HOME/bin"
@@ -267,9 +257,9 @@ mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 # 下载 start.sh 脚本
 print_info "从 GitHub 下载最新框架代码..."
 if command -v curl &>/dev/null; then
-    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
+    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh -o "$PROJECT_DIR/bin/start.sh" || handle_error "下载失败，请检查网络连接"
 elif command -v wget &>/dev/null; then
-    wget -q -O "$PROJECT_DIR/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh || handle_error "下载失败，请检查网络连接"
+    wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh || handle_error "下载失败，请检查网络连接"
 else
     handle_error "未找到 curl 或 wget 命令，无法下载框架代码"
 fi
@@ -277,22 +267,22 @@ fi
 # 处理 Windows 换行符问题（增强版）
 print_info "确保脚本使用 Unix 格式换行符..."
 if command -v dos2unix &>/dev/null; then
-    dos2unix "$PROJECT_DIR/start.sh" || print_info "警告: dos2unix 执行失败，尝试替代方法"
+    dos2unix "$PROJECT_DIR/bin/start.sh" || print_info "警告: dos2unix 执行失败，尝试替代方法"
 else
     # 尝试使用 sed
     SED_SUCCESS=0
-    if sed -i 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    if sed -i 's/\r$//' "$PROJECT_DIR/bin/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
-    elif sed -i '' 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    elif sed -i '' 's/\r$//' "$PROJECT_DIR/bin/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
-    elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
+    elif sed -i "" 's/\r$//' "$PROJECT_DIR/bin/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
     fi
     
     if [ $SED_SUCCESS -eq 0 ]; then
         print_info "警告: sed 命令失败，尝试使用 tr"
-        if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
-            mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
+        if tr -d '\r' < "$PROJECT_DIR/bin/start.sh" > "$PROJECT_DIR/bin/start.sh.tmp"; then
+            mv "$PROJECT_DIR/bin/start.sh.tmp" "$PROJECT_DIR/bin/start.sh" || handle_error "无法修复换行符问题"
         else
             handle_error "无法修复换行符问题，请检查文件权限"
         fi
@@ -300,11 +290,11 @@ else
 fi
 
 # 设置执行权限
-chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
+chmod +x "$PROJECT_DIR/bin/start.sh" || handle_error "无法设置执行权限"
 
 # 创建快捷命令（使用函数替代 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
-FUNCTION_LINE="$ALIAS_CMD() { $PROJECT_DIR/start.sh \"\$@\"; }"
+FUNCTION_LINE="$ALIAS_CMD() { $PROJECT_DIR/bin/start.sh \"\$@\"; }"
 
 # 配置环境变量（增强版）
 print_info "配置环境变量..."
@@ -403,8 +393,8 @@ if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
     if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
         print_info "框架脚本测试通过！"
     else
-        print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
-        print_info "您可以手动执行: $PROJECT_DIR/start.sh 查看详细错误。"
+        print_info "框架脚本测试失败，请检查 $PROJECT_DIR/bin/start.sh 文件。"
+        print_info "您可以手动执行: $PROJECT_DIR/bin/start.sh 查看详细错误。"
     fi
 else
     print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
