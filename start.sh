@@ -173,7 +173,7 @@ checkUpdate() {
     read -p "按 Enter 继续..."
 }
 
-# 运行框架
+# 运行框架（管理程序按钮链接相关操作）
 runFramework() {
     showBanner
     echo -e "${CYAN}正在运行 Fmie--primary 框架...${RESET}"
@@ -191,7 +191,7 @@ runFramework() {
     # 框架主循环示例
     while true; do
         echo -e "\n${CYAN}Fmie--primary 控制台${RESET}"
-        echo -e "1) 执行任务"
+        echo -e "1) 执行任务（管理程序按钮链接相关操作）"
         echo -e "2) 查看日志"
         echo -e "3) 配置设置"
         echo -e "0) 返回主菜单"
@@ -200,10 +200,10 @@ runFramework() {
 
         case $choice in
             1)
-                echo -e "${YELLOW}[信息]${RESET} 执行任务..."
+                echo -e "${YELLOW}[信息]${RESET} 执行管理程序按钮链接相关操作..."
                 # 执行任务的代码
                 sleep 1
-                echo -e "${GREEN}[成功]${RESET} 任务已完成！"
+                echo -e "${GREEN}[成功]${RESET} 操作已完成！"
                 ;;
             2)
                 echo -e "${YELLOW}[信息]${RESET} 查看日志..."
@@ -214,7 +214,7 @@ runFramework() {
                 # 配置设置的代码
                 ;;
             0)
-                break;
+                break
                 ;;
             *)
                 echo -e "${RED}[错误]${RESET} 无效选择"
@@ -276,7 +276,7 @@ runSunPanel() {
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
         }
         cd "$HOME/Fmie--primary" || {
-            echo -e "${RED}[错误]${RESET} 无法返回框架主菜单"
+            echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
             read -p "按 Enter 继续..."
             return
         }
@@ -293,10 +293,10 @@ showHelp() {
     echo -e "这是一个功能强大的开发框架，提供以下功能:\n"
     echo -e "  1. 系统信息查看 - 显示详细的系统信息"
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
-    echo -e "  3. 框架运行 - 启动框架主程序"
+    echo -e "  3. 框架运行 - 启动框架主程序（管理程序按钮链接相关操作）"
     echo -e "  4. 安装 sun-panel - 安装 sun-panel"
     echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
-    echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
+    echo -e "  2. 帮助信息 - 显示此帮助菜单\n"
     echo -e "${YELLOW}[提示]${RESET} 使用数字键选择相应的功能。"
     read -p "按 Enter 继续..."
 }
