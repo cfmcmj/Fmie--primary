@@ -1,5 +1,5 @@
-#!/bin/sh
-# Fmie--primary 一键安装脚本（无 sudo 版本，POSIX 兼容版）
+#!/bin/bash
+# Fmie--primary 一键安装脚本（无 sudo 版本）
 
 # 颜色定义
 RED='\033[0;91m'
@@ -21,72 +21,17 @@ print_info() {
 # 系统初始化函数 - 彻底清除所有框架痕迹
 system_init() {
     print_info "开始系统彻底初始化..."
-    
-    # 确认操作
-    echo -e "${RED}[警告]${RESET} 此操作将彻底删除 Fmie--primary 框架的所有痕迹，包括:"
-    echo "  - 框架安装目录"
-    echo "  - 环境变量配置"
-    echo "  - 所有项目文件"
-    echo "  - 所有相关配置"
-    echo -e "${RED}[警告]${RESET} 此操作不可恢复，且需要您确认所有删除操作！"
-    
-    # 使用 POSIX 兼容的 read
-    printf "确定要继续吗？这将无法恢复！(y/N): "
-    read confirm
-    if [ "$confirm" != "y" ]; then
-        echo -e "${YELLOW}[信息]${RESET} 系统初始化已取消"
-        exit 0
-    fi
-    
     # 创建必要的目录（保留，不删除）
-    mkdir -p "$HOME/bin" || handle_error "无法创建 $HOME/bin 目录"
-    mkdir -p "$HOME/.config" || handle_error "无法创建 $HOME/.config 目录"
-    
-    # 检查并安装必要的依赖（仅检查，不删除）
-    print_info "检查系统依赖..."
-    MISSING_DEPS=""
-    
-    # 检查 curl/wget
-    if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
-        MISSING_DEPS="$MISSING_DEPS curl/wget"
-    fi
-    
-    # 检查 sed
-    if ! command -v sed >/dev/null 2>&1; then
-        MISSING_DEPS="$MISSING_DEPS sed"
-    fi
-    
-    # 检查 grep
-    if ! command -v grep >/dev/null 2>&1; then
-        MISSING_DEPS="$MISSING_DEPS grep"
-    fi
-    
-    # 输出缺少的依赖
-    if [ -n "$MISSING_DEPS" ]; then
-        echo -e "${YELLOW}[警告]${RESET} 系统缺少以下依赖: $MISSING_DEPS"
-        echo -e "${YELLOW}[提示]${RESET} 请联系系统管理员安装这些依赖"
-    else
-        print_info "系统依赖检查通过"
-    fi
-    
-    # 清理旧的安装文件 - 彻底删除
-    print_info "彻底删除框架安装目录..."
+    mkdir -p "$HOME/bin"
+    mkdir -p "$HOME/.config"
+    # 彻底删除框架安装目录
     if [ -d "$HOME/Fmie--primary" ]; then
-        echo -e "${YELLOW}[确认]${RESET} 即将删除目录: $HOME/Fmie--primary"
-        printf "继续删除？(y/N): "
-        read confirm
-        if [ "$confirm" = "y" ]; then
-            rm -rf "$HOME/Fmie--primary" || handle_error "无法删除框架安装目录"
-            print_info "已彻底删除框架安装目录"
-        else
-            print_info "跳过删除框架安装目录"
-        fi
+        rm -rf "$HOME/Fmie--primary" || handle_error "无法删除框架安装目录"
+        print_info "已彻底删除框架安装目录"
     else
         print_info "框架安装目录不存在，跳过删除"
     fi
-    
-    # 清理所有相关文件和目录 - 增强版
-    print_info "清理所有相关文件和目录..."
+    # 清理所有相关文件和目录
     RELATED_FILES=(
         "$HOME/Fmie--primary"
         "$HOME/.fmie"
@@ -99,29 +44,19 @@ system_init() {
         "$HOME/.fmirc"
         "$HOME/.fmie_profile"
     )
-    
     for file in "${RELATED_FILES[@]}"; do
         if [ -e "$file" ]; then
-            echo -e "${YELLOW}[确认]${RESET} 即将删除: $file"
-            printf "继续删除？(y/N): "
-            read confirm
-            if [ "$confirm" = "y" ]; then
-                if [ -d "$file" ]; then
-                    rm -rf "$file" || handle_error "无法删除目录 $file"
-                else
-                    rm -f "$file" || handle_error "无法删除文件 $file"
-                fi
-                print_info "已删除 $file"
+            if [ -d "$file" ]; then
+                rm -rf "$file" || handle_error "无法删除目录 $file"
             else
-                print_info "跳过删除 $file"
+                rm -f "$file" || handle_error "无法删除文件 $file"
             fi
+            print_info "已删除 $file"
         else
             print_info "$file 不存在，跳过删除"
         fi
     done
-    
     # 清理环境变量配置 - 彻底清除
-    print_info "彻底清除环境变量配置..."
     CONFIG_FILES=(
         "$HOME/.bashrc"
         "$HOME/.bash_profile"
@@ -132,91 +67,50 @@ system_init() {
         "$HOME/.config/fish/functions/fmie.fish"
         "$HOME/.config/fish/functions/gg.fish"
     )
-    
     for file in "${CONFIG_FILES[@]}"; do
         if [ -f "$file" ]; then
-            echo -e "${YELLOW}[确认]${RESET} 即将清理配置文件: $file"
-            printf "继续清理？(y/N): "
-            read confirm
-            if [ "$confirm" = "y" ]; then
-                # 创建备份
-                cp "$file" "$file.bak" || handle_error "无法备份 $file"
-                print_info "已备份 $file 到 $file.bak"
-                
-                # 彻底清除所有 Fmie--primary 相关配置
-                if sed --version >/dev/null 2>&1 && sed --version | grep -q "GNU"; then
-                    # GNU sed
-                    sed -i '/# Fmie--primary framework/d' "$file"
-                    sed -i '/gg() {.*Fmie--primary\/start.sh/d' "$file"
-                    sed -i '/export PATH.*Fmie--primary/d' "$file"
-                    sed -i '/alias gg=.*Fmie--primary/d' "$file"
-                    sed -i '/Fmie--primary/d' "$file"
-                else
-                    # BSD sed (macOS/FreeBSD) 或其他 sed
-                    # 创建临时文件进行修改
-                    sed '/# Fmie--primary framework/d' "$file" > "$file.tmp"
-                    sed '/gg() {.*Fmie--primary\/start.sh/d' "$file.tmp" > "$file"
-                    sed '/export PATH.*Fmie--primary/d' "$file" > "$file.tmp"
-                    sed '/alias gg=.*Fmie--primary/d' "$file.tmp" > "$file"
-                    sed '/Fmie--primary/d' "$file" > "$file.tmp"
-                    mv "$file.tmp" "$file"
-                fi
-                print_info "已彻底清除 $file 中的框架配置"
+            if sed --version 2>/dev/null | grep -q "GNU"; then
+                # GNU sed
+                sed -i '/# Fmie--primary framework/d' "$file"
+                sed -i '/gg() {.*Fmie--primary\/start.sh/d' "$file"
+                sed -i '/export PATH.*Fmie--primary/d' "$file"
+                sed -i '/alias gg=.*Fmie--primary/d' "$file"
+                sed -i '/Fmie--primary/d' "$file"
             else
-                print_info "跳过清理 $file"
+                # BSD sed (macOS/FreeBSD)
+                sed -i '' '/# Fmie--primary framework/d' "$file"
+                sed -i '' '/gg() {.*Fmie--primary\/start.sh/d' "$file"
+                sed -i '' '/export PATH.*Fmie--primary/d' "$file"
+                sed -i '' '/alias gg=.*Fmie--primary/d' "$file"
+                sed -i '' '/Fmie--primary/d' "$file"
             fi
-        else
-            print_info "$file 不存在，跳过清理"
+            print_info "已彻底清除 $file 中的框架配置"
         fi
     done
-    
     # 清理命令历史记录
-    print_info "清理命令历史记录..."
     HIST_FILES=(
         "$HOME/.bash_history"
         "$HOME/.zsh_history"
         "$HOME/.fish_history"
     )
-    
     for hist_file in "${HIST_FILES[@]}"; do
         if [ -f "$hist_file" ]; then
-            echo -e "${YELLOW}[确认]${RESET} 即将从历史记录中移除 Fmie--primary 相关命令: $hist_file"
-            printf "继续清理？(y/N): "
-            read confirm
-            if [ "$confirm" = "y" ]; then
-                # 创建备份
-                cp "$hist_file" "$hist_file.bak" || handle_error "无法备份 $hist_file"
-                print_info "已备份 $hist_file 到 $hist_file.bak"
-                
-                # 移除包含 Fmie--primary 的行
-                if sed --version >/dev/null 2>&1 && sed --version | grep -q "GNU"; then
-                    sed -i '/Fmie--primary/d' "$hist_file"
-                    sed -i '/fmie/d' "$hist_file"
-                    sed -i '/gg/d' "$hist_file"
-                else
-                    # 使用临时文件处理
-                    sed '/Fmie--primary/d' "$hist_file" > "$hist_file.tmp"
-                    sed '/fmie/d' "$hist_file.tmp" > "$hist_file"
-                    sed '/gg/d' "$hist_file" > "$hist_file.tmp"
-                    mv "$hist_file.tmp" "$hist_file"
-                fi
-                print_info "已清理 $hist_file 中的框架命令记录"
+            if sed --version 2>/dev/null | grep -q "GNU"; then
+                sed -i '/Fmie--primary/d' "$hist_file"
+                sed -i '/fmie/d' "$hist_file"
+                sed -i '/gg/d' "$hist_file"
             else
-                print_info "跳过清理 $hist_file"
+                sed -i '' '/Fmie--primary/d' "$hist_file"
+                sed -i '' '/fmie/d' "$hist_file"
+                sed -i '' '/gg/d' "$hist_file"
             fi
-        else
-            print_info "$hist_file 不存在，跳过清理"
+            print_info "已清理 $hist_file 中的框架命令记录"
         fi
     done
-    
     # 清除命令缓存
     print_info "清除命令缓存..."
-    if command -v hash >/dev/null 2>&1; then
-        hash -r 2>/dev/null
-    fi
-    
+    hash -r
     print_info "系统彻底初始化完成！Fmie--primary 框架已被完全删除。"
-    echo -e "${YELLOW}[提示]${RESET} 建议重新登录或重启终端以确保所有更改生效。"
 }
 
 # 定义安装目录
@@ -229,101 +123,44 @@ echo -e "${YELLOW}========================================${RESET}"
 echo -e "  此脚本将安装 Fmie--primary 框架到您的系统"
 echo -e "  安装过程不需要 sudo 权限"
 echo -e "${YELLOW}========================================${RESET}"
-echo
 
-# 提供选项
-echo "请选择操作:"
-echo "1) 系统初始化 (彻底清除所有框架痕迹)"
-echo "2) 安装 Fmie--primary 框架"
-echo "3) 系统初始化并安装框架"
-echo "0) 退出"
-
-printf "请选择 [0-3]: "
-read choice
-
-case "$choice" in
-    1)
-        system_init
-        exit 0
-        ;;
-    2)
-        # 继续安装
-        ;;
-    3)
-        system_init
-        ;;
-    0)
-        echo -e "${YELLOW}[信息]${RESET} 安装已取消"
-        exit 0
-        ;;
-    *)
-        echo -e "${RED}[错误]${RESET} 无效选择"
-        exit 1
-        ;;
-esac
+# 系统初始化并安装框架
+system_init()
 
 # 开始安装
 print_info "开始安装 Fmie--primary 框架..."
 
 # 创建项目目录
-mkdir -p "$PROJECT_DIR/bin" || handle_error "无法创建项目目录: $PROJECT_DIR/bin"
+mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
 
-# 下载 start.sh 脚本（使用改进的下载逻辑）
+# 下载 start.sh 脚本
 print_info "从 GitHub 下载最新框架代码..."
-DOWNLOAD_SUCCESS=0
-
-# 尝试使用 curl 下载
-if command -v curl >/dev/null 2>&1; then
-    echo "尝试使用 curl 下载..."
-    if curl -Ls -o "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh; then
-        DOWNLOAD_SUCCESS=1
-    else
-        # 尝试使用 jsDelivr 镜像
-        echo "curl 下载失败，尝试使用 jsDelivr 镜像..."
-        if curl -Ls -o "$PROJECT_DIR/bin/start.sh" https://cdn.jsdelivr.net/gh/cfmcmj/Fmie--primary@main/bin/start.sh; then
-            DOWNLOAD_SUCCESS=1
-        fi
-    fi
-fi
-
-# 如果 curl 失败，尝试使用 wget
-if [ $DOWNLOAD_SUCCESS -eq 0 ] && command -v wget >/dev/null 2>&1; then
-    echo "尝试使用 wget 下载..."
-    if wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh; then
-        DOWNLOAD_SUCCESS=1
-    else
-        # 尝试使用 jsDelivr 镜像
-        echo "wget 下载失败，尝试使用 jsDelivr 镜像..."
-        if wget -q -O "$PROJECT_DIR/bin/start.sh" https://cdn.jsdelivr.net/gh/cfmcmj/Fmie--primary@main/bin/start.sh; then
-            DOWNLOAD_SUCCESS=1
-        fi
-    fi
-fi
-
-# 检查下载是否成功
-if [ $DOWNLOAD_SUCCESS -eq 0 ]; then
-    handle_error "下载失败，请检查网络连接或尝试手动下载"
+if command -v curl &>/dev/null; then
+    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh -o "$PROJECT_DIR/start.sh" || handle_error "下载失败，请检查网络连接"
+elif command -v wget &>/dev/null; then
+    wget -q -O "$PROJECT_DIR/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/start.sh || handle_error "下载失败，请检查网络连接"
+else
+    handle_error "未找到 curl 或 wget 命令，无法下载框架代码"
 fi
 
 # 处理 Windows 换行符问题（增强版）
 print_info "确保脚本使用 Unix 格式换行符..."
-if command -v dos2unix >/dev/null 2>&1; then
-    dos2unix "$PROJECT_DIR/bin/start.sh" >/dev/null 2>&1 || print_info "警告: dos2unix 执行失败，尝试替代方法"
+if command -v dos2unix &>/dev/null; then
+    dos2unix "$PROJECT_DIR/start.sh" || print_info "警告: dos2unix 执行失败，尝试替代方法"
 else
     # 尝试使用 sed
     SED_SUCCESS=0
-    if sed -i 's/\r$//' "$PROJECT_DIR/bin/start.sh" >/dev/null 2>&1; then
+    if sed -i 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
-    elif sed -i '' 's/\r$//' "$PROJECT_DIR/bin/start.sh" >/dev/null 2>&1; then
+    elif sed -i '' 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
-    elif sed -i "" 's/\r$//' "$PROJECT_DIR/bin/start.sh" >/dev/null 2>&1; then
+    elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
     fi
-    
     if [ $SED_SUCCESS -eq 0 ]; then
         print_info "警告: sed 命令失败，尝试使用 tr"
-        if tr -d '\r' < "$PROJECT_DIR/bin/start.sh" > "$PROJECT_DIR/bin/start.sh.tmp"; then
-            mv "$PROJECT_DIR/bin/start.sh.tmp" "$PROJECT_DIR/bin/start.sh" || handle_error "无法修复换行符问题"
+        if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
+            mv "$PROJECT_DIR/start.sh.tmp" "$PROJECT_DIR/start.sh" || handle_error "无法修复换行符问题"
         else
             handle_error "无法修复换行符问题，请检查文件权限"
         fi
@@ -331,40 +168,29 @@ else
 fi
 
 # 设置执行权限
-chmod +x "$PROJECT_DIR/bin/start.sh" || handle_error "无法设置执行权限"
+chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
 # 创建快捷命令（使用函数替代 alias）
 print_info "创建快捷命令 '$ALIAS_CMD'..."
-FUNCTION_LINE="$ALIAS_CMD() { $PROJECT_DIR/bin/start.sh \"\$@\"; }"
-
+FUNCTION_LINE="$ALIAS_CMD() { $PROJECT_DIR/start.sh \"\$@\"; }"
 # 配置环境变量（增强版）
 print_info "配置环境变量..."
-ENV_FILES=(
-    "$HOME/.bashrc"
-    "$HOME/.bash_profile"
-    "$HOME/.zshrc"
-    "$HOME/.profile"
-    "$HOME/.bash_login"
-)
+ENV_FILES=("$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zshrc")
 ENV_FILE=""
-
 # 查找当前用户使用的 shell 对应的配置文件
 for file in "${ENV_FILES[@]}"; do
     if [ -f "$file" ]; then
-        # 移除旧的 alias 定义
+        # 移除旧的 alias 定义（改进版 sed 命令）
         if grep -q "alias $ALIAS_CMD=" "$file"; then
-            # 使用兼容的 sed 命令
-            if sed --version >/dev/null 2>&1 && sed --version | grep -q "GNU"; then
+            if sed --version 2>/dev/null | grep -q "GNU"; then
                 # GNU sed
                 sed -i '/alias '"$ALIAS_CMD"'=/d' "$file"
             else
-                # 使用临时文件处理
-                sed '/alias '"$ALIAS_CMD"'=/d' "$file" > "$file.tmp"
-                mv "$file.tmp" "$file"
+                # BSD sed (macOS/FreeBSD)
+                sed -i '' '/alias '"$ALIAS_CMD"'=/d' "$file"
             fi
             print_info "已从 $file 中移除旧的 alias 定义"
         fi
-        
         # 添加函数定义
         if ! grep -q "$FUNCTION_LINE" "$file"; then
             echo -e "\n# Fmie--primary framework" >> "$file"
@@ -377,79 +203,50 @@ for file in "${ENV_FILES[@]}"; do
         break
     fi
 done
-
 # 如果未找到任何文件，则默认使用 .bashrc
 if [ -z "$ENV_FILE" ]; then
     echo -e "\n# Fmie--primary framework" >> "$HOME/.bashrc"
     echo "$FUNCTION_LINE" >> "$HOME/.bashrc"
     ENV_FILE="$HOME/.bashrc"
-    print_info "已将函数定义添加到 $HOME/.bashrc"
 fi
-
-# 确保 .bash_profile 存在并加载 .bashrc (针对 bash)
-if [ "$(basename "$SHELL")" = "bash" ]; then
-    if [ ! -f "$HOME/.bash_profile" ]; then
-        echo -e "\n# Load .bashrc if it exists" > "$HOME/.bash_profile"
-        echo "if [ -f \"$HOME/.bashrc\" ]; then" >> "$HOME/.bash_profile"
-        echo "    . \"$HOME/.bashrc\"" >> "$HOME/.bash_profile"
-        echo "fi" >> "$HOME/.bash_profile"
-        print_info "已创建 $HOME/.bash_profile"
-    elif ! grep -q "\. \"$HOME/.bashrc\"" "$HOME/.bash_profile"; then
-        echo -e "\n# Load .bashrc" >> "$HOME/.bash_profile"
-        echo "if [ -f \"$HOME/.bashrc\" ]; then" >> "$HOME/.bash_profile"
-        echo "    . \"$HOME/.bashrc\"" >> "$HOME/.bash_profile"
-        echo "fi" >> "$HOME/.bash_profile"
-        print_info "已更新 $HOME/.bash_profile 以加载 .bashrc"
-    fi
-fi
-
-# 清除命令缓存
-print_info "清除命令缓存..."
-if command -v hash >/dev/null 2>&1; then
-    hash -d "$ALIAS_CMD" 2>/dev/null
-fi
-
 # 立即生效环境变量（改进版验证）
 print_info "尝试立即加载环境变量..."
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+    # 检查 .bashrc 第一行是否有语法错误
+    if head -n1 "$ENV_FILE" | grep -q "alias gg="; then
+        if sed --version 2>/dev/null | grep -q "GNU"; then
+            sed -i '1d' "$ENV_FILE"
+        else
+            # BSD sed 需要临时文件
+            sed '1d' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
+        fi
+        print_info "已修复 .bashrc 文件"
+    fi
     # 在子 shell 中加载并验证
-    if sh -c ". $ENV_FILE && type $ALIAS_CMD >/dev/null 2>&1"; then
+    if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
         print_info "环境变量已成功加载！"
     else
         print_info "警告: 环境变量未能立即生效。这可能不影响后续使用。"
     fi
 fi
-
 # 验证安装结果（改进版验证）
 print_info "验证安装结果..."
 # 使用子 shell 验证，避免影响当前环境
-if sh -c ". $ENV_FILE && type $ALIAS_CMD >/dev/null 2>&1"; then
+if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
     print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
-    
     # 测试脚本是否能正常执行
-    if sh -c ". $ENV_FILE && $ALIAS_CMD --test >/dev/null 2>&1"; then
+    if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
         print_info "框架脚本测试通过！"
     else
-        print_info "框架脚本测试失败，请检查 $PROJECT_DIR/bin/start.sh 文件。"
-        print_info "您可以手动执行: $PROJECT_DIR/bin/start.sh 查看详细错误。"
+        print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
+        print_info "您可以手动执行: $PROJECT_DIR/start.sh 查看详细错误。"
     fi
 else
     print_info "安装完成，但 '$ALIAS_CMD' 命令尚未生效。"
     echo
     echo -e "${GREEN}使用方法:${RESET}"
-    echo "  1. 在当前终端执行: ${CYAN}. $ENV_FILE${RESET}"
+    echo "  1. 在当前终端执行: ${CYAN}source $ENV_FILE${RESET}"
     echo "  2. 或重新启动终端"
     echo "  3. 执行 ${CYAN}$ALIAS_CMD${RESET} 命令启动框架"
     echo
 fi
-
-# 额外检查：检测登录 shell 类型并提供明确提示
-CURRENT_SHELL=$(basename "$SHELL")
-echo
-echo -e "${YELLOW}[重要提示]${RESET}"
-echo "您当前使用的 shell 是: ${CYAN}$CURRENT_SHELL${RESET}"
-echo "如果重新登录后命令不可用，请确认:"
-echo "  1. 对于 bash 用户: 确保 ~/.bash_profile 存在并正确加载 ~/.bashrc"
-echo "  2. 对于 zsh 用户: 确保 ~/.zshrc 包含函数定义"
-echo "  3. 对于其他 shell: 请参考对应 shell 的配置文件"
-echo
