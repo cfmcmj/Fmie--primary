@@ -22,12 +22,13 @@ showBanner() {
   echo -e "$(cat << EOF
 ${GREEN}<----------------------------------------------------------------->
 
-    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
-    ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██  ██  ██      
-    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████    ████       
-    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██         ██        
-    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
-    ${RED}                                  ${BLUE}                  
+    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
+    ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██  ██  ██      
+    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████    ████       
+    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██         ██        
+    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
+    ${RED}                                  ${BLUE}                  
+
     ${RED}     当前版本号:${GREEN}v1.0.0    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架
 ${GREEN}<----------------------------------------------------------------->                                                       
 EOF
@@ -68,96 +69,39 @@ get_freebsd_memory_info() {
         active_mem_mb=$((active_mem / 1024 / 1024))
         free_mem_mb=$((free_mem / 1024 / 1024))
         
-        # 计算百分比
-        if [ $total_mem -gt 0 ]; then
-            used_percent=$((active_mem * 100 / total_mem))
-        else
-            used_percent=0
-        fi
-        
-        echo "  总内存: ${total_mem_mb} MB"
-        echo "  已用内存: ${active_mem_mb} MB"
-        echo "  空闲内存: ${free_mem_mb} MB"
-        echo "  使用率: ${used_percent}%"
-    elif [ -r "/compat/linux/proc/meminfo" ]; then
-        # 兼容 Linux 子系统的情况
-        total=$(grep "MemTotal:" /compat/linux/proc/meminfo | awk '{print $2}')
-        free=$(grep "MemFree:" /compat/linux/proc/meminfo | awk '{print $2}')
-        available=$(grep "MemAvailable:" /compat/linux/proc/meminfo | awk '{print $2}')
-        
-        if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
-            used=$((total - free))
-            percent=$((used * 100 / total))
-            
-            echo "  总内存: $(echo "scale=2; $total/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
-            echo "  可用内存: $(echo "scale=2; $available/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
-            echo "  使用率: ${percent}%"
-        else
-            echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
-        fi
+        echo -e "  总内存: ${total_mem_mb}MB, 活跃内存: ${active_mem_mb}MB, 空闲内存: ${free_mem_mb}MB"
     else
-        echo -e "  ${YELLOW}[提示]${RESET} 缺少 'vmstat' 命令，无法显示内存信息"
+        echo -e "  ${YELLOW}[提示]${RESET} 缺少 'vmstat' 命令，无法获取详细内存信息"
     fi
 }
 
 # 系统信息
 systemInfo() {
-  echo -e "${CYAN}系统信息:${RESET}"
-  echo "主机名: $(hostname)"
-  
-  # 获取操作系统信息
-  OS=$(uname)
-  case $OS in
-    Linux)
-      echo "操作系统: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
-      ;;
-    FreeBSD)
-      echo "操作系统: FreeBSD $(uname -r)"
-      ;;
-    *)
-      echo "操作系统: $OS $(uname -r)"
-      ;;
-  esac
-  
-  echo "内核版本: $(uname -r)"
-  
-  # 内存信息（改进版，支持 FreeBSD）
-  echo -e "${CYAN}内存信息:${RESET}"
-  if [ "$OS" = "FreeBSD" ]; then
-      get_freebsd_memory_info
-  else
-      if command -v free &>/dev/null; then
-          echo "  $(free -h | grep Mem | awk '{printf "总内存: %s, 已用: %s, 空闲: %s, 使用率: %s\n", $2, $3, $4, $5}')"
-      else
-          if [ -f "/proc/meminfo" ]; then
-              total=$(grep "MemTotal:" /proc/meminfo | awk '{print $2}')
-              free=$(grep "MemFree:" /proc/meminfo | awk '{print $2}')
-              available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
-              
-              if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
-                  used=$((total - free))
-                  percent=$((used * 100 / total))
-                  
-                  echo "  总内存: $(echo "scale=2; $total/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
-                  echo "  可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
-                  echo "  使用率: ${percent}%"
-              else
-                  echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
-              fi
-          else
-              echo -e "  ${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
-          fi
-      fi
-  fi
-  
-  # 磁盘空间（改进版，支持 FreeBSD）
-  echo -e "${CYAN}磁盘空间:${RESET}"
-  if [ "$OS" = "FreeBSD" ]; then
-      echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
-  else
-      echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
-  fi
-  read -p "按 Enter 继续..."
+    echo -e "${CYAN}系统信息:${RESET}"
+    echo "  主机名: $(hostname)"
+    OS=$(uname -s)
+    echo "  操作系统: $OS"
+    
+    # 内存信息
+    if [ "$OS" = "FreeBSD" ]; then
+        get_freebsd_memory_info
+    else
+        if command -v free &>/dev/null; then
+            mem_info=$(free -m | awk 'NR==2 {printf "总内存: %sMB, 已用: %sMB, 空闲: %sMB", $2, $3, $4}')
+            echo -e "  $mem_info"
+        else
+            echo -e "  ${YELLOW}[提示]${RESET} 缺少 'free' 命令，无法显示内存信息"
+        fi
+    fi
+    
+    # 磁盘空间（改进版，支持 FreeBSD）
+    echo -e "${CYAN}磁盘空间:${RESET}"
+    if [ "$OS" = "FreeBSD" ]; then
+        echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
+    else
+        echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
+    fi
+    read -p "按 Enter 继续..."
 }
 
 # 项目管理
@@ -167,6 +111,7 @@ projectManager() {
   echo "2) 部署现有项目"
   echo "3) 更新项目"
   echo "4) 删除项目"
+  echo "5) sun-panel 项目"  # 添加 sun-panel 项目选项
   echo "0) 返回主菜单"
   
   # FreeBSD 兼容的 read 命令
@@ -177,6 +122,7 @@ projectManager() {
     2) echo "部署现有项目..." ;;
     3) echo "更新项目..." ;;
     4) echo "删除项目..." ;;
+    5) echo "sun-panel 项目（占位实现，待完善）..." ;;  # 空的 sun-panel 项目操作
     0) return ;;
     *) echo "无效选择!" ;;
   esac
@@ -272,6 +218,7 @@ mainMenu() {
     echo "3) 配置设置"
     echo "4) 工具集"
     echo "5) 更新框架"
+    echo "6) sun-panel 项目"  # 添加 sun-panel 项目选项到主菜单
     echo "0) 退出"
     echo "---------------------"
     
@@ -284,6 +231,7 @@ mainMenu() {
       3) configSettings ;;
       4) toolkit ;;
       5) updateFramework ;;
+      6) echo "sun-panel 项目（占位实现，待完善）..." ;;  # 空的 sun-panel 项目操作
       0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; return 0 ;;
       *) echo -e "${RED}无效选择，请重新输入!${RESET}" ;;
     esac
