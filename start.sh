@@ -214,7 +214,7 @@ runFramework() {
                 # 配置设置的代码
                 ;;
             0)
-                break
+                break;
                 ;;
             *)
                 echo -e "${RED}[错误]${RESET} 无效选择"
@@ -276,7 +276,7 @@ runSunPanel() {
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
         }
         cd "$HOME/Fmie--primary" || {
-            echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
+            echo -e "${RED}[错误]${RESET} 无法返回框架主菜单"
             read -p "按 Enter 继续..."
             return
         }
