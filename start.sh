@@ -97,7 +97,7 @@ systemInfo() {
     echo -e "\n${CYAN}磁盘空间:${RESET}"
     echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
 
-    # 挂载的文件
+    # 挂载的文件系统
     echo -e "\n${CYAN}挂载的文件系统:${RESET}"
     df -hT | grep -vE '^Filesystem|tmpfs|udev'
 
@@ -341,7 +341,6 @@ mainMenu() {
                 ;;
             *)
                 echo -e "${RED}[错误]${RESET} 无效选择"
-                sleep 1
                 ;;
         esac
     done
