@@ -21,10 +21,11 @@ ${GREEN}<----------------------------------------------------------------->
 
     ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
     ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██   ██  ██      
-    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████     ████       
-    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██          ██        
-    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
-    ${RED}                                  ${BLUE}                  
+    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████     ████   
+    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██          ██   
+    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██   
+    ${RED}                                  ${BLUE}                
+
     ${RED}     当前版本号:${GREEN}v$VERSION    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架
 ${GREEN}<----------------------------------------------------------------->                                                       
 EOF
@@ -258,46 +259,6 @@ installSunPanel() {
     read -p "按 Enter 继续..."
 }
 
-# 运行 sun-panel 相关操作菜单
-sunPanelMenu() {
-    showBanner
-    echo -e "${CYAN}sun-panel 操作菜单:${RESET}"
-    echo -e "1) 启动 sun-panel"
-    echo -e "2) 停止 sun-panel"
-    echo -e "3) 查看 sun-panel 日志"
-    echo -e "0) 返回主菜单"
-
-    read -p "请选择 [0-3]: " choice
-
-    case $choice in
-        1)
-            runSunPanel
-            ;;
-        2)
-            echo -e "${YELLOW}[信息]${RESET} 停止 sun-panel 的代码暂未实现，跳过操作。"
-            read -p "按 Enter 继续..."
-            sunPanelMenu
-            ;;
-        3)
-            echo -e "${YELLOW}[信息]${RESET} 查看 sun-panel 日志的代码暂未实现，跳过操作。"
-            read -p "按 Enter 继续..."
-            sunPanelMenu
-            ;;
-        4)
-            echo -e "${RED}[错误]${RESET} 无效选择"
-            read -p "按 Enter 继续..."
-            sunPanelMenu
-            ;;
-        0)
-            mainMenu
-            ;;
-        *)
-            echo -e "${RED}[错误]${RESET} 无效选择"
-            sunPanelMenu
-            ;;
-    esac
-}
-
 # 运行 sun-panel
 runSunPanel() {
     showBanner
@@ -313,7 +274,7 @@ runSunPanel() {
             bash scripts/main.sh
         else
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
-        fi
+        }
         cd "$HOME/Fmie--primary" || {
             echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
             read -p "按 Enter 继续..."
@@ -321,7 +282,7 @@ runSunPanel() {
         }
     else
         echo -e "${RED}[错误]${RESET} sun-panel 目录不存在，请先安装"
-    fi
+    }
     read -p "按 Enter 继续..."
 }
 
@@ -334,7 +295,7 @@ showHelp() {
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
     echo -e "  3. 框架运行 - 启动框架主程序"
     echo -e "  4. 安装 sun-panel - 安装 sun-panel"
-    echo -e "  5. 管理 sun-panel - 对已安装的 sun-panel 进行操作"
+    echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
     echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
     echo -e "${YELLOW}[提示]${RESET} 使用数字键选择相应的功能。"
     read -p "按 Enter 继续..."
@@ -349,8 +310,47 @@ mainMenu() {
         echo -e "2) 检查更新"
         echo -e "3) 运行框架"
         echo -e "4) 安装 sun-panel"
-        echo -e "5) 管理 sun-panel"
+        echo -e "5) 运行 sun-panel"
         echo -e "6) 帮助"
         echo -e "0) 退出"
 
-        read -p "
+        read -p "请选择 [0-6]: " choice
+
+        case $choice in
+            1)
+                systemInfo
+                ;;
+            2)
+                checkUpdate
+                ;;
+            3)
+                runFramework
+                ;;
+            4)
+                installSunPanel
+                ;;
+            5)
+                runSunPanel
+                ;;
+            6)
+                showHelp
+                ;;
+            0)
+                echo -e "${YELLOW}[信息]${RESET} 感谢使用 Fmie--primary 框架！"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}[错误]${RESET} 无效选择"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# 测试命令
+if [ "$1" = "--test" ]; then
+    exit 0
+fi
+
+# 启动主菜单
+mainMenu
