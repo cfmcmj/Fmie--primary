@@ -19,21 +19,31 @@ print_info() {
 }
 
 # 系统初始化函数 - 彻底清除所有框架痕迹
-system_init() {
-    print_info "开始系统彻底初始化..."
-    
-    # 确认操作
-    echo -e "${RED}[警告]${RESET} 此操作将彻底删除 Fmie--primary 框架的所有痕迹，包括:"
-    echo "  - 框架安装目录"
-    echo "  - 环境变量配置"
-    echo "  - 所有项目文件"
-    echo "  - 所有相关配置"
-    echo -e "${RED}[警告]${RESET} 此操作不可恢复，且需要您确认所有删除操作！"
-    read -p "确定要继续吗？这将无法恢复！(y/N): " confirm
-    if [ "$confirm" != "y" ]; then
-        echo -e "${YELLOW}[信息]${RESET} 系统初始化已取消"
-        exit 0
-    fi
+# ... 其他函数保持不变 ...
+
+# 定义安装目录
+PROJECT_DIR="$HOME/Fmie--primary"
+ALIAS_CMD="gg"  # 快捷命令名称
+
+# ... 其他代码保持不变 ...
+
+# 开始安装
+print_info "开始安装 Fmie--primary 框架..."
+
+# 创建项目目录
+mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
+
+# 下载 start.sh 脚本
+print_info "从 GitHub 下载最新框架代码..."
+if command -v curl &>/dev/null; then
+    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh -o "$PROJECT_DIR/bin/start.sh" || handle_error "下载失败，请检查网络连接"
+elif command -v wget &>/dev/null; then
+    wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh || handle_error "下载失败，请检查网络连接"
+else
+    handle_error "未找到 curl 或 wget 命令，无法下载框架代码"
+fi
+
+# ... 其他代码保持不变 ...
     
     # 创建必要的目录（保留，不删除）
     mkdir -p "$HOME/bin"
