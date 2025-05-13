@@ -97,7 +97,7 @@ systemInfo() {
     echo -e "\n${CYAN}磁盘空间:${RESET}"
     echo "  /: $(df -h / | awk 'NR==2 {printf "总空间: %s, 已用: %s, 可用: %s, 使用率: %s\n", $2, $3, $4, $5}')"
 
-    # 挂载的文件系统
+    # 挂载的文件
     echo -e "\n${CYAN}挂载的文件系统:${RESET}"
     df -hT | grep -vE '^Filesystem|tmpfs|udev'
 
@@ -113,7 +113,7 @@ systemInfo() {
 
     # 系统运行时间
     echo -e "\n${CYAN}系统运行时间:${RESET}"
-    echo -e "  $(uptime | sed's/^.*up //; s/, [0-9]* users.*//')"
+    echo -e "  $(uptime | sed's/^.*up //; s/, [0-3]* users.*//')"
 
     # 用户信息
     echo -e "\n${CYAN}当前登录用户:${RESET}"
