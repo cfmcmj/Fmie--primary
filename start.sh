@@ -22,12 +22,13 @@ showBanner() {
   echo -e "$(cat << EOF
 ${GREEN}<----------------------------------------------------------------->
 
-    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
-    ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██  ██  ██      
-    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████    ████       
-    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██         ██        
-    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
-    ${RED}                                  ${BLUE}                  
+    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     
+    ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██   ██  ██      
+    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████     ████       
+    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██          ██        
+    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        
+    ${RED}                                  ${BLUE}                  
+
     ${RED}     当前版本号:${GREEN}v1.0.0    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架
 ${GREEN}<----------------------------------------------------------------->                                                       
 EOF
@@ -79,22 +80,6 @@ get_freebsd_memory_info() {
         echo "  已用内存: ${active_mem_mb} MB"
         echo "  空闲内存: ${free_mem_mb} MB"
         echo "  使用率: ${used_percent}%"
-    elif [ -r "/compat/linux/proc/meminfo" ]; then
-        # 兼容 Linux 子系统的情况
-        total=$(grep "MemTotal:" /compat/linux/proc/meminfo | awk '{print $2}')
-        free=$(grep "MemFree:" /compat/linux/proc/meminfo | awk '{print $2}')
-        available=$(grep "MemAvailable:" /compat/linux/proc/meminfo | awk '{print $2}')
-        
-        if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
-            used=$((total - free))
-            percent=$((used * 100 / total))
-            
-            echo "  总内存: $(echo "scale=2; $total/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
-            echo "  可用内存: $(echo "scale=2; $available/1024" | bc -l | awk '{printf "%.2f MB\n", $1}')"
-            echo "  使用率: ${percent}%"
-        else
-            echo -e "  ${YELLOW}[提示]${RESET} 无法获取详细内存信息"
-        fi
     else
         echo -e "  ${YELLOW}[提示]${RESET} 缺少 'vmstat' 命令，无法显示内存信息"
     fi
@@ -104,7 +89,6 @@ get_freebsd_memory_info() {
 systemInfo() {
   echo -e "${CYAN}系统信息:${RESET}"
   echo "主机名: $(hostname)"
-  
   # 获取操作系统信息
   OS=$(uname)
   case $OS in
@@ -118,9 +102,7 @@ systemInfo() {
       echo "操作系统: $OS $(uname -r)"
       ;;
   esac
-  
   echo "内核版本: $(uname -r)"
-  
   # 内存信息（改进版，支持 FreeBSD）
   echo -e "${CYAN}内存信息:${RESET}"
   if [ "$OS" = "FreeBSD" ]; then
@@ -133,11 +115,9 @@ systemInfo() {
               total=$(grep "MemTotal:" /proc/meminfo | awk '{print $2}')
               free=$(grep "MemFree:" /proc/meminfo | awk '{print $2}')
               available=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
-              
               if [ -n "$total" ] && [ -n "$free" ] && [ -n "$available" ]; then
                   used=$((total - free))
                   percent=$((used * 100 / total))
-                  
                   echo "  总内存: $(echo "scale=2; $total/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
                   echo "  可用内存: $(echo "scale=2; $available/1024/1024" | bc -l | awk '{printf "%.2f GB\n", $1}')"
                   echo "  使用率: ${percent}%"
@@ -149,7 +129,6 @@ systemInfo() {
           fi
       fi
   fi
-  
   # 磁盘空间（改进版，支持 FreeBSD）
   echo -e "${CYAN}磁盘空间:${RESET}"
   if [ "$OS" = "FreeBSD" ]; then
@@ -168,10 +147,8 @@ projectManager() {
   echo "3) 更新项目"
   echo "4) 删除项目"
   echo "0) 返回主菜单"
-  
   # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
-  
   case $choice in
     1) echo "创建新项目..." ;;
     2) echo "部署现有项目..." ;;
@@ -190,10 +167,8 @@ configSettings() {
   echo "2) 管理用户账户"
   echo "3) 设置环境变量"
   echo "0) 返回主菜单"
-  
   # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
-  
   case $choice in
     1) echo "修改系统配置..." ;;
     2) echo "管理用户账户..." ;;
@@ -212,10 +187,8 @@ toolkit() {
   echo "3) 系统监控"
   echo "4) 网络工具"
   echo "0) 返回主菜单"
-  
   # FreeBSD 兼容的 read 命令
   read -p "请选择: " choice
-  
   case $choice in
     1) echo "文件管理器..." ;;
     2) echo "日志查看器..." ;;
@@ -224,29 +197,6 @@ toolkit() {
     0) return ;;
     *) echo "无效选择!" ;;
   esac
-  read -p "按 Enter 继续..."
-}
-
-# 更新框架
-updateFramework() {
-  echo -e "${CYAN}更新框架:${RESET}"
-  echo "正在检查更新..."
-  
-  # 模拟更新检查
-  sleep 2
-  echo "发现新版本! 是否更新? (y/n)"
-  
-  # FreeBSD 兼容的 read 命令
-  read -p "选择: " confirm
-  
-  if [ "$confirm" = "y" ]; then
-    echo "正在更新框架..."
-    # 模拟更新过程
-    sleep 3
-    echo "更新完成!"
-  else
-    echo "更新已取消。"
-  fi
   read -p "按 Enter 继续..."
 }
 
@@ -271,19 +221,15 @@ mainMenu() {
     echo "2) 项目管理"
     echo "3) 配置设置"
     echo "4) 工具集"
-    echo "5) 更新框架"
     echo "0) 退出"
     echo "---------------------"
-    
     # FreeBSD 兼容的 read 命令（禁用超时）
     read -p "请选择: " choice
-    
     case $choice in
       1) systemInfo ;;
       2) projectManager ;;
       3) configSettings ;;
       4) toolkit ;;
-      5) updateFramework ;;
       0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; return 0 ;;
       *) echo -e "${RED}无效选择，请重新输入!${RESET}" ;;
     esac
