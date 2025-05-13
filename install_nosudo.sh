@@ -44,17 +44,19 @@ system_init() {
     MISSING_DEPS=""
 
     # 检查 curl/wget
-    if! command -v curl &>/dev/null &&! command -v wget &>/dev/null; then
-        MISSING_DEPS="$MISSING_DEPS curl/wget"
+    if ! command -v curl &>/dev/null; then
+        if ! command -v wget &>/dev/null; then
+            MISSING_DEPS="$MISSING_DEPS curl/wget"
+        fi
     fi
 
     # 检查 sed
-    if! command -v sed &>/dev/null; then
+    if ! command -v sed &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS sed"
     fi
 
     # 检查 grep
-    if! command -v grep &>/dev/null; then
+    if ! command -v grep &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS grep"
     fi
 
@@ -330,7 +332,7 @@ chmod +x "$HOME/bin/$ALIAS_CMD" || handle_error "无法设置快捷命令权限"
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$ENV_FILE" ]; then
     # 检查是否已添加
-    if! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
+    if ! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
         echo '# Fmie--primary framework' >> "$ENV_FILE"
         echo 'export PATH="$HOME/bin:$PATH"' >> "$ENV_FILE"
         print_info "已将 $HOME/bin 添加到环境变量"
@@ -376,4 +378,6 @@ echo
 echo -e "${GREEN}安装已完成！${RESET}"
 read -p "是否立即启动 Fmie--primary 框架？(y/N): " start_choice
 if [ "$start_choice" = "y" ]; then
-    print_info "正在启动 Fmie--primary
+    print_info "正在启动 Fmie--primary 框架..."
+    $ALIAS_CMD
+fi    
