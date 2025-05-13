@@ -244,11 +244,11 @@ installSunPanel() {
             read -p "按 Enter 继续..."
             return
         }
-    else {
+    else
         echo -e "${RED}[错误]${RESET} 未找到 git 命令，无法克隆 sun-panel 代码"
         read -p "按 Enter 继续..."
         return
-    }
+    fi
     find scripts -type f -name "*.sh" -exec chmod +x {} \; || {
         echo -e "${RED}[错误]${RESET} 设置脚本权限失败"
         read -p "按 Enter 继续..."
@@ -271,15 +271,15 @@ runSunPanel() {
         }
         if [ -x scripts/main.sh ]; then
             bash scripts/main.sh
-        else {
+        else
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
-        }
+        fi
         cd "$HOME/Fmie--primary" || {
             echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
             read -p "按 Enter 继续..."
             return
         }
-    else {
+    else
         echo -e "${RED}[错误]${RESET} sun-panel 目录不存在，请先安装"
     fi
     read -p "按 Enter 继续..."
