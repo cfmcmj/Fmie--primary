@@ -173,45 +173,39 @@ checkUpdate() {
     read -p "按 Enter 继续..."
 }
 
-# 运行框架（管理程序按钮链接相关操作）
+# 运行框架（专注于管理程序按钮链接）
 runFramework() {
     showBanner
     echo -e "${CYAN}正在运行 Fmie--primary 框架...${RESET}"
-
-    # 这里是框架的主要功能代码
-    # 由于不清楚具体框架功能，这里仅作为示例
-
-    echo -e "${YELLOW}[信息]${RESET} 框架核心已启动..."
-    echo -e "${YELLOW}[信息]${RESET} 加载配置文件..."
-    echo -e "${YELLOW}[信息]${RESET} 初始化环境..."
-
-    # 模拟框架运行
-    echo -e "${GREEN}[成功]${RESET} 框架已成功启动！"
-
-    # 框架主循环示例
+    echo -e "${YELLOW}[信息]${RESET} 框架已启动，准备管理程序按钮链接..."
+    
+    # 框架主循环 - 只处理按钮链接管理
     while true; do
-        echo -e "\n${CYAN}Fmie--primary 控制台${RESET}"
-        echo -e "1) 执行任务（管理程序按钮链接相关操作）"
-        echo -e "2) 查看日志"
-        echo -e "3) 配置设置"
+        echo -e "\n${CYAN}Fmie--primary 按钮链接管理控制台${RESET}"
+        echo -e "1) 添加新程序按钮链接"
+        echo -e "2) 编辑现有按钮链接"
+        echo -e "3) 删除按钮链接"
+        echo -e "4) 查看所有按钮链接"
         echo -e "0) 返回主菜单"
 
-        read -p "请选择 [0-3]: " choice
+        read -p "请选择 [0-4]: " choice
 
         case $choice in
             1)
-                echo -e "${YELLOW}[信息]${RESET} 执行管理程序按钮链接相关操作..."
-                # 执行任务的代码
-                sleep 1
-                echo -e "${GREEN}[成功]${RESET} 操作已完成！"
+                echo -e "${YELLOW}[信息]${RESET} 添加新程序按钮链接..."
+                # 按钮链接添加逻辑
                 ;;
             2)
-                echo -e "${YELLOW}[信息]${RESET} 查看日志..."
-                # 查看日志的代码
+                echo -e "${YELLOW}[信息]${RESET} 编辑现有按钮链接..."
+                # 按钮链接编辑逻辑
                 ;;
             3)
-                echo -e "${YELLOW}[信息]${RESET} 配置设置..."
-                # 配置设置的代码
+                echo -e "${YELLOW}[信息]${RESET} 删除按钮链接..."
+                # 按钮链接删除逻辑
+                ;;
+            4)
+                echo -e "${YELLOW}[信息]${RESET} 查看所有按钮链接..."
+                # 按钮链接查看逻辑
                 ;;
             0)
                 break
@@ -274,7 +268,7 @@ runSunPanel() {
             bash scripts/main.sh
         else
             echo -e "${RED}[错误]${RESET} sun-panel 主脚本不可执行或不存在"
-        }
+        fi
         cd "$HOME/Fmie--primary" || {
             echo -e "${RED}[错误]${RESET} 无法返回框架主目录"
             read -p "按 Enter 继续..."
@@ -282,7 +276,7 @@ runSunPanel() {
         }
     else
         echo -e "${RED}[错误]${RESET} sun-panel 目录不存在，请先安装"
-    }
+    fi
     read -p "按 Enter 继续..."
 }
 
@@ -293,10 +287,10 @@ showHelp() {
     echo -e "这是一个功能强大的开发框架，提供以下功能:\n"
     echo -e "  1. 系统信息查看 - 显示详细的系统信息"
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
-    echo -e "  3. 框架运行 - 启动框架主程序（管理程序按钮链接相关操作）"
+    echo -e "  3. 框架运行 - 启动框架主程序（管理程序按钮链接）"
     echo -e "  4. 安装 sun-panel - 安装 sun-panel"
     echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
-    echo -e "  2. 帮助信息 - 显示此帮助菜单\n"
+    echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
     echo -e "${YELLOW}[提示]${RESET} 使用数字键选择相应的功能。"
     read -p "按 Enter 继续..."
 }
@@ -308,7 +302,7 @@ mainMenu() {
         echo -e "${CYAN}主菜单:${RESET}"
         echo -e "1) 查看系统信息"
         echo -e "2) 检查更新"
-        echo -e "3) 运行框架"
+        echo -e "3) 运行框架（管理按钮链接）"
         echo -e "4) 安装 sun-panel"
         echo -e "5) 运行 sun-panel"
         echo -e "6) 帮助"
