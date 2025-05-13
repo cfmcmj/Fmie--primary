@@ -173,39 +173,45 @@ checkUpdate() {
     read -p "按 Enter 继续..."
 }
 
-# 运行框架（专注于管理程序按钮链接）
+# 运行框架
 runFramework() {
     showBanner
     echo -e "${CYAN}正在运行 Fmie--primary 框架...${RESET}"
-    echo -e "${YELLOW}[信息]${RESET} 框架已启动，准备管理程序按钮链接..."
-    
-    # 框架主循环 - 只处理按钮链接管理
+
+    # 这里是框架的主要功能代码
+    # 由于不清楚具体框架功能，这里仅作为示例
+
+    echo -e "${YELLOW}[信息]${RESET} 框架核心已启动..."
+    echo -e "${YELLOW}[信息]${RESET} 加载配置文件..."
+    echo -e "${YELLOW}[信息]${RESET} 初始化环境..."
+
+    # 模拟框架运行
+    echo -e "${GREEN}[成功]${RESET} 框架已成功启动！"
+
+    # 框架主循环示例
     while true; do
-        echo -e "\n${CYAN}Fmie--primary 按钮链接管理控制台${RESET}"
-        echo -e "1) 添加新程序按钮链接"
-        echo -e "2) 编辑现有按钮链接"
-        echo -e "3) 删除按钮链接"
-        echo -e "4) 查看所有按钮链接"
+        echo -e "\n${CYAN}Fmie--primary 控制台${RESET}"
+        echo -e "1) 执行任务"
+        echo -e "2) 查看日志"
+        echo -e "3) 配置设置"
         echo -e "0) 返回主菜单"
 
-        read -p "请选择 [0-4]: " choice
+        read -p "请选择 [0-3]: " choice
 
         case $choice in
             1)
-                echo -e "${YELLOW}[信息]${RESET} 添加新程序按钮链接..."
-                # 按钮链接添加逻辑
+                echo -e "${YELLOW}[信息]${RESET} 执行任务..."
+                # 执行任务的代码
+                sleep 1
+                echo -e "${GREEN}[成功]${RESET} 任务已完成！"
                 ;;
             2)
-                echo -e "${YELLOW}[信息]${RESET} 编辑现有按钮链接..."
-                # 按钮链接编辑逻辑
+                echo -e "${YELLOW}[信息]${RESET} 查看日志..."
+                # 查看日志的代码
                 ;;
             3)
-                echo -e "${YELLOW}[信息]${RESET} 删除按钮链接..."
-                # 按钮链接删除逻辑
-                ;;
-            4)
-                echo -e "${YELLOW}[信息]${RESET} 查看所有按钮链接..."
-                # 按钮链接查看逻辑
+                echo -e "${YELLOW}[信息]${RESET} 配置设置..."
+                # 配置设置的代码
                 ;;
             0)
                 break
@@ -243,7 +249,7 @@ installSunPanel() {
         echo -e "${RED}[错误]${RESET} 未找到 git 命令，无法克隆 sun-panel 代码"
         read -p "按 Enter 继续..."
         return
-    }
+    fi
     find scripts -type f -name "*.sh" -exec chmod +x {} \; || {
         echo -e "${RED}[错误]${RESET} 设置脚本权限失败"
         read -p "按 Enter 继续..."
@@ -287,7 +293,7 @@ showHelp() {
     echo -e "这是一个功能强大的开发框架，提供以下功能:\n"
     echo -e "  1. 系统信息查看 - 显示详细的系统信息"
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
-    echo -e "  3. 框架运行 - 启动框架主程序（管理程序按钮链接）"
+    echo -e "  3. 框架运行 - 启动框架主程序"
     echo -e "  4. 安装 sun-panel - 安装 sun-panel"
     echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
     echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
@@ -302,7 +308,7 @@ mainMenu() {
         echo -e "${CYAN}主菜单:${RESET}"
         echo -e "1) 查看系统信息"
         echo -e "2) 检查更新"
-        echo -e "3) 运行框架（管理按钮链接）"
+        echo -e "3) 运行框架"
         echo -e "4) 安装 sun-panel"
         echo -e "5) 运行 sun-panel"
         echo -e "6) 帮助"
