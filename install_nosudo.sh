@@ -292,29 +292,36 @@ fi
 # 设置执行权限
 chmod +x "$PROJECT_DIR/start.sh" || handle_error "无法设置执行权限"
 
-# 创建快捷命令（使用函数替代 alias）
+# 创建快捷命令 - 使用函数定义而非简单的别名
 print_info "创建快捷命令 '$ALIAS_CMD'..."
-echo "#!/bin/bash" > "$HOME/bin/$ALIAS_CMD"
-echo "$PROJECT_DIR/start.sh" >> "$HOME/bin/$ALIAS_CMD"
+cat > "$HOME/bin/$ALIAS_CMD" << EOF
+#!/bin/bash
+$PROJECT_DIR/start.sh "\$@"
+EOF
 chmod +x "$HOME/bin/$ALIAS_CMD" || handle_error "无法设置快捷命令权限"
 
-# 添加到环境变量
+# 添加到环境变量 - 使用更健壮的方式
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$ENV_FILE" ]; then
-    if ! grep -q "$HOME/bin" "$ENV_FILE"; then
+    # 检查是否已添加
+    if ! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
+        echo '# Fmie--primary framework' >> "$ENV_FILE"
         echo 'export PATH="$HOME/bin:$PATH"' >> "$ENV_FILE"
         print_info "已将 $HOME/bin 添加到环境变量"
     fi
 fi
 
-# 验证安装结果（改进版验证）
+# 为当前会话立即更新环境变量
+export PATH="$HOME/bin:$PATH"
+hash -r  # 刷新命令缓存
+
+# 验证安装结果
 print_info "验证安装结果..."
-# 使用子 shell 验证，避免影响当前环境
-if bash -c "source $ENV_FILE && type $ALIAS_CMD &>/dev/null"; then
+if command -v $ALIAS_CMD &>/dev/null; then
     print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
     
     # 测试脚本是否能正常执行
-    if bash -c "source $ENV_FILE && $ALIAS_CMD --test &>/dev/null"; then
+    if $ALIAS_CMD --test &>/dev/null; then
         print_info "框架脚本测试通过！"
     else
         print_info "框架脚本测试失败，请检查 $PROJECT_DIR/start.sh 文件。"
@@ -329,9 +336,6 @@ else
     echo "  3. 执行 ${CYAN}$ALIAS_CMD${RESET} 命令启动框架"
     echo
 fi
-
-# 为当前会话临时添加路径
-export PATH="$HOME/bin:$PATH"
 
 # 提供启动选项
 echo
