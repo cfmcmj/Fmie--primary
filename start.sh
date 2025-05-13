@@ -1,22 +1,36 @@
 #!/bin/bash
 
-# 颜色定义
-RED='\033[0;91m'
-GREEN='\033[0;92m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-PURPLE='\033[0;95m'
-BLUE='\033[0;94m'
-RESET='\033[0m'
+# 颜色定义 - 使用标准ANSI转义序列
+RED=$'\033[0;91m'
+GREEN=$'\033[0;92m'
+YELLOW=$'\033[0;33m'
+CYAN=$'\033[0;36m'
+PURPLE=$'\033[0;95m'
+BLUE=$'\033[0;94m'
+RESET=$'\033[0m'
 
 VERSION="1.0.0"
 
-# 显示横幅
+# 显示横幅 - 改进版，使用更可靠的颜色处理
 showBanner() {
-    cat <<EOF
-    ${RED}     当前版本号:${GREEN}v$VERSION    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架
-${GREEN}<----------------------------------------------------------------->                                                       
-EOF
+    clear
+    echo -e "${GREEN}<----------------------------------------------------------------->\n"
+    
+    echo -e "    ${RED}███████ ███    ███ ██ ███████     ${BLUE}██████  ██    ██     "
+    echo -e "    ${RED}██      ████  ████ ██ ██          ${BLUE}██   ██  ██  ██      "
+    echo -e "    ${RED}█████   ██ ████ ██ ██ █████ ${GREEN}█████ ${BLUE}██████    ████       "
+    echo -e "    ${RED}██      ██  ██  ██ ██ ██          ${BLUE}██         ██        "
+    echo -e "    ${RED}██      ██      ██ ██ ███████     ${BLUE}██         ██        "
+    echo -e "    ${RED}                                  ${BLUE}                  "
+    echo -e "    ${RED}     当前版本号:${GREEN}v$VERSION    F${GREEN}M${YELLOW}I${BLUE}E${PURPLE}-${CYAN}P${RED}T${RESET} -- 自动化部署框架"
+    
+    echo -e "\n${GREEN}<----------------------------------------------------------------->\n"
+    echo -e "${CYAN}使用方法:${RESET} gg [选项]"
+    echo -e "${CYAN}选项:${RESET}"
+    echo -e "  --help\t显示此帮助信息"
+    echo -e "  --version\t显示版本信息"
+    echo -e "  --test\t测试脚本功能"
+    echo ""
 }
 
 # 显示帮助信息
