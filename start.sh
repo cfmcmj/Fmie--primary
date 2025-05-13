@@ -167,6 +167,7 @@ projectManager() {
   echo "2) 部署现有项目"
   echo "3) 更新项目"
   echo "4) 删除项目"
+  echo "5) sun-panel 项目"  # 添加 sun-panel 项目选项
   echo "0) 返回主菜单"
   
   # FreeBSD 兼容的 read 命令
@@ -177,6 +178,7 @@ projectManager() {
     2) echo "部署现有项目..." ;;
     3) echo "更新项目..." ;;
     4) echo "删除项目..." ;;
+    5) echo "sun-panel 项目（占位实现，待完善）..." ;;  # 空的 sun-panel 项目操作
     0) return ;;
     *) echo "无效选择!" ;;
   esac
@@ -272,6 +274,7 @@ mainMenu() {
     echo "3) 配置设置"
     echo "4) 工具集"
     echo "5) 更新框架"
+    echo "6) sun-panel 项目"  # 添加 sun-panel 项目选项到主菜单
     echo "0) 退出"
     echo "---------------------"
     
@@ -284,6 +287,7 @@ mainMenu() {
       3) configSettings ;;
       4) toolkit ;;
       5) updateFramework ;;
+      6) echo "sun-panel 项目（占位实现，待完善）..." ;;  # 空的 sun-panel 项目操作
       0) echo -e "${GREEN}感谢使用 Fmie-pry 框架，再见!${RESET}"; return 0 ;;
       *) echo -e "${RED}无效选择，请重新输入!${RESET}" ;;
     esac

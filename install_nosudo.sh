@@ -252,16 +252,43 @@ esac
 print_info "开始安装 Fmie--primary 框架..."
 
 # 创建项目目录
-mkdir -p "$PROJECT_DIR" || handle_error "无法创建项目目录: $PROJECT_DIR"
+mkdir -p "$PROJECT_DIR/bin" || handle_error "无法创建项目目录: $PROJECT_DIR/bin"
 
-# 下载 start.sh 脚本
+# 下载 start.sh 脚本（使用改进的下载逻辑）
 print_info "从 GitHub 下载最新框架代码..."
+DOWNLOAD_SUCCESS=0
+
+# 尝试使用 curl 下载
 if command -v curl &>/dev/null; then
-    curl -Ls https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh -o "$PROJECT_DIR/bin/start.sh" || handle_error "下载失败，请检查网络连接"
-elif command -v wget &>/dev/null; then
-    wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh || handle_error "下载失败，请检查网络连接"
-else
-    handle_error "未找到 curl 或 wget 命令，无法下载框架代码"
+    echo "尝试使用 curl 下载..."
+    if curl -Ls -o "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh; then
+        DOWNLOAD_SUCCESS=1
+    else
+        # 尝试使用 jsDelivr 镜像
+        echo "curl 下载失败，尝试使用 jsDelivr 镜像..."
+        if curl -Ls -o "$PROJECT_DIR/bin/start.sh" https://cdn.jsdelivr.net/gh/cfmcmj/Fmie--primary@main/bin/start.sh; then
+            DOWNLOAD_SUCCESS=1
+        fi
+    fi
+fi
+
+# 如果 curl 失败，尝试使用 wget
+if [ $DOWNLOAD_SUCCESS -eq 0 ] && command -v wget &>/dev/null; then
+    echo "尝试使用 wget 下载..."
+    if wget -q -O "$PROJECT_DIR/bin/start.sh" https://raw.githubusercontent.com/cfmcmj/Fmie--primary/main/bin/start.sh; then
+        DOWNLOAD_SUCCESS=1
+    else
+        # 尝试使用 jsDelivr 镜像
+        echo "wget 下载失败，尝试使用 jsDelivr 镜像..."
+        if wget -q -O "$PROJECT_DIR/bin/start.sh" https://cdn.jsdelivr.net/gh/cfmcmj/Fmie--primary@main/bin/start.sh; then
+            DOWNLOAD_SUCCESS=1
+        fi
+    fi
+fi
+
+# 检查下载是否成功
+if [ $DOWNLOAD_SUCCESS -eq 0 ]; then
+    handle_error "下载失败，请检查网络连接或尝试手动下载"
 fi
 
 # 处理 Windows 换行符问题（增强版）
