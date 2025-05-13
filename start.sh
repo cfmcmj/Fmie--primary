@@ -8,7 +8,7 @@ YELLOW='\033[0;33m'
 CYAN='\033[0;96m'
 BLUE='\033[0;94m'
 PURPLE='\033[0;95m'
-RESET='\033[0m'
+RESET='\033[0;39m'
 
 # 框架版本
 VERSION="1.0.0"
@@ -69,9 +69,9 @@ systemInfo() {
     # CPU 信息
     echo -e "\n${CYAN}CPU 信息:${RESET}"
     if [ -f /proc/cpuinfo ]; then
-        CPU_MODEL=$(grep 'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
+        CPU_MODEL=$(grep'model name' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
         CPU_CORES=$(grep 'processor' /proc/cpuinfo | wc -l)
-        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed 's/^[ \t]*//')
+        CPU_FREQ=$(grep 'cpu MHz' /proc/cpuinfo | head -1 | cut -d ':' -f2 | sed's/^[ \t]*//')
         echo -e "  型号: $CPU_MODEL"
         echo -e "  核心数: $CPU_CORES"
         echo -e "  频率: $CPU_FREQ MHz"
@@ -112,7 +112,7 @@ systemInfo() {
 
     # 系统运行时间
     echo -e "\n${CYAN}系统运行时间:${RESET}"
-    echo -e "  $(uptime | sed 's/^.*up //; s/, [0-9]* users.*//')"
+    echo -e "  $(uptime | sed's/^.*up //; s/, [0-9]* users.*//')"
 
     # 用户信息
     echo -e "\n${CYAN}当前登录用户:${RESET}"
@@ -248,7 +248,7 @@ installSunPanel() {
         echo -e "${RED}[错误]${RESET} 未找到 git 命令，无法克隆 sun-panel 代码"
         read -p "按 Enter 继续..."
         return
-    fi
+    }
     find scripts -type f -name "*.sh" -exec chmod +x {} \; || {
         echo -e "${RED}[错误]${RESET} 设置脚本权限失败"
         read -p "按 Enter 继续..."
@@ -256,6 +256,46 @@ installSunPanel() {
     }
     echo -e "${GREEN}[成功]${RESET} sun-panel 安装完成！"
     read -p "按 Enter 继续..."
+}
+
+# 运行 sun-panel 相关操作菜单
+sunPanelMenu() {
+    showBanner
+    echo -e "${CYAN}sun-panel 操作菜单:${RESET}"
+    echo -e "1) 启动 sun-panel"
+    echo -e "2) 停止 sun-panel"
+    echo -e "3) 查看 sun-panel 日志"
+    echo -e "0) 返回主菜单"
+
+    read -p "请选择 [0-3]: " choice
+
+    case $choice in
+        1)
+            runSunPanel
+            ;;
+        2)
+            echo -e "${YELLOW}[信息]${RESET} 停止 sun-panel 的代码暂未实现，跳过操作。"
+            read -p "按 Enter 继续..."
+            sunPanelMenu
+            ;;
+        3)
+            echo -e "${YELLOW}[信息]${RESET} 查看 sun-panel 日志的代码暂未实现，跳过操作。"
+            read -p "按 Enter 继续..."
+            sunPanelMenu
+            ;;
+        4)
+            echo -e "${RED}[错误]${RESET} 无效选择"
+            read -p "按 Enter 继续..."
+            sunPanelMenu
+            ;;
+        0)
+            mainMenu
+            ;;
+        *)
+            echo -e "${RED}[错误]${RESET} 无效选择"
+            sunPanelMenu
+            ;;
+    esac
 }
 
 # 运行 sun-panel
@@ -294,7 +334,7 @@ showHelp() {
     echo -e "  2. 框架更新 - 自动检查并更新到最新版本"
     echo -e "  3. 框架运行 - 启动框架主程序"
     echo -e "  4. 安装 sun-panel - 安装 sun-panel"
-    echo -e "  5. 运行 sun-panel - 启动已安装的 sun-panel"
+    echo -e "  5. 管理 sun-panel - 对已安装的 sun-panel 进行操作"
     echo -e "  6. 帮助信息 - 显示此帮助菜单\n"
     echo -e "${YELLOW}[提示]${RESET} 使用数字键选择相应的功能。"
     read -p "按 Enter 继续..."
@@ -309,47 +349,8 @@ mainMenu() {
         echo -e "2) 检查更新"
         echo -e "3) 运行框架"
         echo -e "4) 安装 sun-panel"
-        echo -e "5) 运行 sun-panel"
+        echo -e "5) 管理 sun-panel"
         echo -e "6) 帮助"
         echo -e "0) 退出"
 
-        read -p "请选择 [0-6]: " choice
-
-        case $choice in
-            1)
-                systemInfo
-                ;;
-            2)
-                checkUpdate
-                ;;
-            3)
-                runFramework
-                ;;
-            4)
-                installSunPanel
-                ;;
-            5)
-                runSunPanel
-                ;;
-            6)
-                showHelp
-                ;;
-            0)
-                echo -e "${YELLOW}[信息]${RESET} 感谢使用 Fmie--primary 框架！"
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}[错误]${RESET} 无效选择"
-                sleep 1
-                ;;
-        esac
-    done
-}
-
-# 测试命令
-if [ "$1" = "--test" ]; then
-    exit 0
-fi
-
-# 启动主菜单
-mainMenu    
+        read -p "
