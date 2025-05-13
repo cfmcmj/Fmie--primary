@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fmie--primary 一键安装脚本（无 sudo 版本）
+# Fmie--primary 一键安装脚本（无sudo版本）
 
 # 颜色定义
 RED='\033[0;91m'
@@ -21,7 +21,7 @@ print_info() {
 # 系统初始化函数 - 彻底清除所有框架痕迹
 system_init() {
     print_info "开始系统彻底初始化..."
-    
+
     # 确认操作
     echo -e "${RED}[警告]${RESET} 此操作将彻底删除 Fmie--primary 框架的所有痕迹，包括:"
     echo "  - 框架安装目录"
@@ -34,30 +34,30 @@ system_init() {
         echo -e "${YELLOW}[信息]${RESET} 系统初始化已取消"
         exit 0
     fi
-    
+
     # 创建必要的目录（保留，不删除）
     mkdir -p "$HOME/bin"
     mkdir -p "$HOME/.config"
-    
+
     # 检查并安装必要的依赖（仅检查，不删除）
     print_info "检查系统依赖..."
     MISSING_DEPS=""
-    
+
     # 检查 curl/wget
-    if ! command -v curl &>/dev/null && ! command -v wget &>/dev/null; then
+    if! command -v curl &>/dev/null &&! command -v wget &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS curl/wget"
     fi
-    
+
     # 检查 sed
-    if ! command -v sed &>/dev/null; then
+    if! command -v sed &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS sed"
     fi
-    
+
     # 检查 grep
-    if ! command -v grep &>/dev/null; then
+    if! command -v grep &>/dev/null; then
         MISSING_DEPS="$MISSING_DEPS grep"
     fi
-    
+
     # 输出缺少的依赖
     if [ -n "$MISSING_DEPS" ]; then
         echo -e "${YELLOW}[警告]${RESET} 系统缺少以下依赖: $MISSING_DEPS"
@@ -65,7 +65,7 @@ system_init() {
     else
         print_info "系统依赖检查通过"
     fi
-    
+
     # 清理旧的安装文件 - 彻底删除
     print_info "彻底删除框架安装目录..."
     if [ -d "$HOME/Fmie--primary" ]; then
@@ -80,7 +80,7 @@ system_init() {
     else
         print_info "框架安装目录不存在，跳过删除"
     fi
-    
+
     # 清理所有相关文件和目录 - 增强版
     print_info "清理所有相关文件和目录..."
     RELATED_FILES=(
@@ -95,7 +95,7 @@ system_init() {
         "$HOME/.fmirc"
         "$HOME/.fmie_profile"
     )
-    
+
     for file in "${RELATED_FILES[@]}"; do
         if [ -e "$file" ]; then
             echo -e "${YELLOW}[确认]${RESET} 即将删除: $file"
@@ -114,7 +114,7 @@ system_init() {
             print_info "$file 不存在，跳过删除"
         fi
     done
-    
+
     # 清理环境变量配置 - 彻底清除
     print_info "彻底清除环境变量配置..."
     CONFIG_FILES=(
@@ -127,7 +127,7 @@ system_init() {
         "$HOME/.config/fish/functions/fmie.fish"
         "$HOME/.config/fish/functions/gg.fish"
     )
-    
+
     for file in "${CONFIG_FILES[@]}"; do
         if [ -f "$file" ]; then
             echo -e "${YELLOW}[确认]${RESET} 即将清理配置文件: $file"
@@ -136,7 +136,7 @@ system_init() {
                 # 创建备份
                 cp "$file" "$file.bak"
                 print_info "已备份 $file 到 $file.bak"
-                
+
                 # 彻底清除所有 Fmie--primary 相关配置
                 if sed --version 2>/dev/null | grep -q "GNU"; then
                     # GNU sed
@@ -161,7 +161,7 @@ system_init() {
             print_info "$file 不存在，跳过清理"
         fi
     done
-    
+
     # 清理命令历史记录
     print_info "清理命令历史记录..."
     HIST_FILES=(
@@ -169,7 +169,7 @@ system_init() {
         "$HOME/.zsh_history"
         "$HOME/.fish_history"
     )
-    
+
     for hist_file in "${HIST_FILES[@]}"; do
         if [ -f "$hist_file" ]; then
             echo -e "${YELLOW}[确认]${RESET} 即将从历史记录中移除 Fmie--primary 相关命令: $hist_file"
@@ -178,7 +178,7 @@ system_init() {
                 # 创建备份
                 cp "$hist_file" "$hist_file.bak"
                 print_info "已备份 $hist_file 到 $hist_file.bak"
-                
+
                 # 移除包含 Fmie--primary 的行
                 if sed --version 2>/dev/null | grep -q "GNU"; then
                     sed -i '/Fmie--primary/d' "$hist_file"
@@ -197,13 +197,39 @@ system_init() {
             print_info "$hist_file 不存在，跳过清理"
         fi
     done
-    
+
     # 清除命令缓存
     print_info "清除命令缓存..."
     hash -r
-    
+
     print_info "系统彻底初始化完成！Fmie--primary 框架已被完全删除。"
     echo -e "${YELLOW}[提示]${RESET} 建议重新登录或重启终端以确保所有更改生效。"
+}
+
+# 安装 sun-panel 项目
+install_sun_panel() {
+    print_info "开始安装 sun-panel 项目..."
+    # 创建 sun-panel 目录
+    local sun_panel_dir="$HOME/Fmie--primary/sun-panel"
+    mkdir -p "$sun_panel_dir" || handle_error "无法创建 sun-panel 安装目录"
+    cd "$sun_panel_dir" || handle_error "无法进入 sun-panel 安装目录"
+
+    # 下载 sun-panel 代码（假设从 GitHub 下载，根据实际情况修改）
+    local repo_url="https://github.com/your-repo/sun-panel.git"
+    if command -v curl &>/dev/null; then
+        curl -Ls "$repo_url" -o sun-panel.zip || handle_error "下载 sun-panel 代码失败，请检查网络连接"
+        unzip sun-panel.zip && rm sun-panel.zip || handle_error "解压 sun-panel 代码失败"
+    elif command -v wget &>/dev/null; then
+        wget -q -O sun-panel.zip "$repo_url" || handle_error "下载 sun-panel 代码失败，请检查网络连接"
+        unzip sun-panel.zip && rm sun-panel.zip || handle_error "解压 sun-panel 代码失败"
+    else
+        handle_error "未找到 curl 或 wget 命令，无法下载 sun-panel 代码"
+    fi
+
+    # 设置权限
+    find scripts -type f -name "*.sh" -exec chmod +x {} \; || handle_error "设置脚本权限失败"
+
+    print_info "sun-panel 项目安装完成！"
 }
 
 # 定义安装目录
@@ -278,7 +304,7 @@ else
     elif sed -i "" 's/\r$//' "$PROJECT_DIR/start.sh" 2>/dev/null; then
         SED_SUCCESS=1
     fi
-    
+
     if [ $SED_SUCCESS -eq 0 ]; then
         print_info "警告: sed 命令失败，尝试使用 tr"
         if tr -d '\r' < "$PROJECT_DIR/start.sh" > "$PROJECT_DIR/start.sh.tmp"; then
@@ -304,7 +330,7 @@ chmod +x "$HOME/bin/$ALIAS_CMD" || handle_error "无法设置快捷命令权限"
 ENV_FILE="$HOME/.bashrc"
 if [ -f "$ENV_FILE" ]; then
     # 检查是否已添加
-    if ! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
+    if! grep -q "export PATH=.*$HOME/bin" "$ENV_FILE"; then
         echo '# Fmie--primary framework' >> "$ENV_FILE"
         echo 'export PATH="$HOME/bin:$PATH"' >> "$ENV_FILE"
         print_info "已将 $HOME/bin 添加到环境变量"
@@ -319,7 +345,7 @@ hash -r  # 刷新命令缓存
 print_info "验证安装结果..."
 if command -v $ALIAS_CMD &>/dev/null; then
     print_info "安装成功！'$ALIAS_CMD' 命令已可用。"
-    
+
     # 测试脚本是否能正常执行
     if $ALIAS_CMD --test &>/dev/null; then
         print_info "框架脚本测试通过！"
@@ -337,14 +363,17 @@ else
     echo
 fi
 
+# 询问是否安装 sun-panel
+read -p "是否安装 sun-panel 项目？(y/N): " install_sun
+if [ "$install_sun" = "y" ]; then
+    install_sun_panel
+else
+    print_info "跳过 sun-panel 项目安装。"
+fi
+
 # 提供启动选项
 echo
 echo -e "${GREEN}安装已完成！${RESET}"
 read -p "是否立即启动 Fmie--primary 框架？(y/N): " start_choice
 if [ "$start_choice" = "y" ]; then
-    print_info "正在启动 Fmie--primary 框架..."
-    # 启动框架
-    $ALIAS_CMD
-else
-    echo -e "${YELLOW}[提示]${RESET} 您可以随时通过执行 '$ALIAS_CMD' 命令启动框架。"
-fi
+    print_info "正在启动 Fmie--primary
